@@ -13,9 +13,6 @@
       --text-main: #1e293b;
       --text-sub: #64748b;
       --border-color: #e2e8f0;
-      --accent-gray: #6b7280;
-      --bg-old: #f3f4f6;
-      --border-old: #d1d5db;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -74,14 +71,30 @@
       border: 1px solid var(--border-color);
     }
 
-    /* Thẻ dành riêng cho Dữ liệu Cũ */
+    /* Style riêng cho Khối Cũ (Chỉ Xem) */
     .card-old {
-      background: var(--bg-old);
-      border: 1px solid var(--border-old);
+      background-color: #f3f4f6 !important;
+      border-color: #d1d5db !important;
     }
     .card-old h2 {
-      color: var(--accent-gray);
-      border-bottom-color: #d1d5db;
+      color: #4b5563 !important;
+      border-bottom-color: #d1d5db !important;
+    }
+    .card-old input, .card-old select {
+      background-color: #e5e7eb !important;
+      color: #374151 !important;
+      border-color: #d1d5db !important;
+      cursor: not-allowed;
+    }
+    .table-old th {
+      background-color: #e5e7eb !important;
+      color: #374151 !important;
+    }
+    .table-old td {
+      background-color: #f9fafb !important;
+    }
+    .table-old td.sticky-col, .table-old th.sticky-col {
+      background-color: #e5e7eb !important;
     }
 
     h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--primary); border-bottom: 2px solid #eff6ff; padding-bottom: 6px; }
@@ -99,14 +112,6 @@
     }
 
     select:focus, input:focus, textarea:focus { border-color: var(--primary); }
-
-    /* Input thuộc phần cũ disabled */
-    .card-old input:disabled, .card-old select:disabled, .card-old textarea:disabled {
-      background-color: #e5e7eb;
-      color: #374151;
-      cursor: not-allowed;
-      border-color: #d1d5db;
-    }
 
     .btn-primary { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
     .btn-primary:active { background: var(--primary-dark); }
@@ -128,14 +133,8 @@
     th, td { border: 1px solid var(--border-color); padding: 8px; text-align: left; background: white; }
     th { background: #f1f5f9; color: var(--text-sub); font-weight: 600; white-space: nowrap; }
 
-    /* Bảng cũ */
-    .table-old th { background: #e5e7eb; color: #4b5563; }
-    .table-old td { background: #f9fafb; }
-
     .sticky-col { position: sticky; left: 0; background: white; z-index: 10; font-weight: 600; border-right: 2px solid var(--border-color); }
     th.sticky-col { background: #f1f5f9; }
-    .table-old th.sticky-col { background: #e5e7eb; }
-    .table-old td.sticky-col { background: #f3f4f6; }
 
     /* Lưới danh sách ốc */
     .screw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
@@ -161,17 +160,6 @@
     /* Modal phóng to ảnh */
     .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
     .modal-content { max-width: 90%; max-height: 80%; border-radius: 8px; }
-
-    .badge-old {
-      display: inline-block;
-      background: #9ca3af;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
   </style>
 </head>
 <body>
@@ -180,10 +168,10 @@
 
   <!-- TAB 1: HỌC TỰ ĐỘNG -->
   <div id="tab-auto" class="tab-content active">
-
-    <!-- KHỐI 1: HỌC TỰ ĐỘNG (HIỆN TẠI / MỚI) -->
+    
+    <!-- Khối hiện tại (Mới) -->
     <div class="card">
-      <h2>✨ Học Tự Động (Mới / Cập Nhật)</h2>
+      <h2>✨ Học Tự Động</h2>
       <div class="flex-row">
         <div style="flex: 1;">
           <label for="autoLineSelect">Chọn Line</label>
@@ -194,6 +182,7 @@
           <select id="autoModelSelect" onchange="renderAutoMatrix()"></select>
         </div>
       </div>
+
       <div class="table-container">
         <table id="autoMatrixTable">
           <thead>
@@ -214,9 +203,9 @@
       </div>
     </div>
 
-    <!-- KHỐI 2: DỮ LIỆU CŨ (CHỈ XEM) -->
+    <!-- KHỐI MỚI THÊM VÀO BÊN DƯỚI: CŨ (CHỈ XEM - NỀN XÁM) -->
     <div class="card card-old">
-      <h2>📜 Dữ Liệu Cũ <span class="badge-old">Chỉ Xem</span></h2>
+      <h2>📜 Dữ Liệu Cũ (Chỉ Xem)</h2>
       <div class="flex-row">
         <div style="flex: 1;">
           <label for="oldLineSelect">Chọn Line (Cũ)</label>
@@ -227,6 +216,7 @@
           <select id="oldModelSelect" onchange="renderOldMatrix()"></select>
         </div>
       </div>
+
       <div class="table-container">
         <table id="oldMatrixTable" class="table-old">
           <thead>
@@ -254,6 +244,7 @@
     <div class="card">
       <h2 id="screwFormTitle">➕ Thêm Mã Ốc Mới</h2>
       <input type="hidden" id="screwEditIndex" value="-1">
+      
       <label for="screwCode">Mã ốc</label>
       <input type="text" id="screwCode" placeholder="VD: M3-0.5x6">
 
@@ -282,7 +273,7 @@
 
   <!-- TAB 3: CÀI ĐẶT -->
   <div id="tab-settings" class="tab-content">
-
+    
     <div class="card">
       <h2>📋 Thống kê Dữ liệu đã ghi theo Line</h2>
       <div id="lineSummaryContainer"></div>
@@ -292,7 +283,7 @@
       <h2>🤖 Cài đặt Tên máy cố định theo Line</h2>
       <label for="settingLineSelect">Chọn Line để thiết lập danh sách máy</label>
       <select id="settingLineSelect" onchange="renderLineMachinesSettings()"></select>
-
+      
       <div class="flex-row">
         <input type="text" id="newMachineInput" placeholder="Thêm tên máy mới...">
         <button class="btn-primary" style="width: 100px;" onclick="addMachineToLine()">Thêm</button>
@@ -329,7 +320,7 @@
 
   </div>
 
-  <!-- MODAL XEM ẢNH -->
+  <!-- MODAL XEM ẢNH LỚN -->
   <div id="imageModal" class="modal" onclick="closeImageModal()">
     <img class="modal-content" id="modalImage">
   </div>
@@ -415,7 +406,6 @@
 
     /* ===== CẬP NHẬT CÁC THẺ SELECT ===== */
     function updateSelectOptions() {
-      // Line Mới & Cũ
       const autoLineSel = document.getElementById('autoLineSelect');
       const oldLineSel = document.getElementById('oldLineSelect');
       const settingLineSel = document.getElementById('settingLineSelect');
@@ -434,7 +424,6 @@
       if (lines.includes(currentOldLine)) oldLineSel.value = currentOldLine;
       if (lines.includes(currentSettingLine)) settingLineSel.value = currentSettingLine;
 
-      // Model Mới & Cũ
       const autoModelSel = document.getElementById('autoModelSelect');
       const oldModelSel = document.getElementById('oldModelSelect');
 
@@ -494,7 +483,6 @@
         }
 
         const tr = document.createElement('tr');
-
         let html = `<td class="sticky-col">${machineName}</td>`;
 
         AUTO_FIELDS.forEach(field => {
@@ -562,7 +550,7 @@
           const val = entry[field.key] || '';
 
           if (field.type === 'screwSelect') {
-            let optionsHtml = `<option value="">${val ? val : '-- Không có --'}</option>`;
+            let optionsHtml = `<option value="">${val ? val : '-'}</option>`;
             html += `<td>
               <select disabled>
                 ${optionsHtml}
