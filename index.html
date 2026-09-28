@@ -3,15 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Quản lý Thông số Sản xuất</title>
-  
-  <link rel="apple-touch-icon" href="IMG_1658.jpeg">
-  <link rel="icon" type="image/png" href="IMG_1658.jpeg">
+  <title>Quản lý Chi tiêu</title>
+  <link rel="apple-touch-icon" href="IMG_0670.jpeg">
     
-  <meta name="theme-color" content="#007aff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Thông số SX">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color"
+      content="#007aff">
+  <meta name="apple-mobile-web-app-capable"
+        content="yes">
+  <meta name="apple-mobile-web-app-title"
+        content="chi tiêu">
+  <meta name="apple-mobile-web-app-status-bar-style"
+        content="default">
   <style>
     :root {
       --bg: #f2f2f7;
@@ -23,14 +27,14 @@
       --success: #34c759;
       --warning: #ff9500;
       --shadow: 0 4px 16px rgba(0,0,0,0.06);
-      --radius: 12px;
-      --pad: 12px;
-      --gap: 10px;
-      --container-max: 100%;
+      --radius: 14px;
+      --pad: 16px;
+      --gap: 12px;
+      --container-max: 600px;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
-    input, button, select, textarea { max-width: 100%; display: block; }
+    input, button, select, textarea, canvas { max-width: 100%; display: block; }
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     * { -webkit-tap-highlight-color: transparent; }
 
@@ -39,15 +43,21 @@
       background: var(--bg);
       color: var(--text);
       margin: 0;
-      padding-top: 55px;
-      padding-bottom: 30px;
-      font-size: 12px;
+      padding-top: 60px; /* Độ cao của Tab bar */
+      padding-bottom: 80px;
     }
 
-    /* Tab Bar */
+    @supports(padding: env(safe-area-inset-top)){
+      body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+      }
+    }
+
+    /* Tab Bar Cố Định Ở Đầu */
     .tab-bar {
       position: fixed; top: 0; left: 0; right: 0;
-      height: 52px;
+      height: 60px;
       background: #e5e5ea;
       border-bottom: 1px solid #d1d1d6;
       display: flex;
@@ -56,27 +66,78 @@
       padding-top: env(safe-area-inset-top, 0px);
     }
 
-    .tab-divider { width: 1px; height: 24px; background-color: #c7c7cc; }
+    .tab-divider {
+      width: 1px;
+      height: 28px;
+      background-color: #c7c7cc;
+    }
 
     .tab-item {
-      flex: 1; height: 100%; text-align: center; color: var(--muted);
-      font-size: 11px; cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1px;
-      background: #e5e5ea; opacity: 0.7;
+      flex: 1; 
+      height: 100%;
+      text-align: center; 
+      color: var(--muted); 
+      font-size: 11px; 
+      cursor: pointer;
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center;
+      gap: 2px;
+      background: #e5e5ea;
+      opacity: 0.7;
       transition: background 0.2s ease, opacity 0.2s ease, color 0.2s ease;
     }
 
-    .tab-item.active {
-      background: #ffffff; color: var(--primary);
-      font-weight: 600; opacity: 1;
+    .tab-item.active { 
+      background: #ffffff;
+      color: var(--primary); 
+      font-weight: 600; 
+      opacity: 1;
     }
-    .tab-item .icon { font-size: 16px; }
+    .tab-item .icon { font-size: 18px; }
 
     .container {
       max-width: var(--container-max);
       margin: 0 auto;
-      padding: 8px;
+      padding: 0 16px;
     }
+
+    /* Đóng băng tiêu đề "Chi tiêu" khi cuộn */
+    .sticky-header {
+      position: sticky;
+      top: 60px;
+      z-index: 10;
+      background: var(--bg);
+      padding: 12px 0 8px;
+      margin: 0;
+    }
+
+    .sticky-header .header-card {
+      background: var(--card);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .sticky-header h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .budget-limit-info {
+      font-style: italic;
+      font-size: 13px;
+      margin-top: 4px;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .budget-safe { color: var(--success); }
+    .budget-warning { color: var(--warning); }
+    .budget-danger { color: var(--danger); }
+
+    h2 { font-size: 16px; margin: 0 0 12px; }
 
     .card {
       background: var(--card);
@@ -84,22 +145,21 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       margin-bottom: var(--gap);
+      overflow: hidden;
     }
 
-    h2 { font-size: 14px; margin: 0 0 8px; }
-
-    label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 600; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 
     input, select, button {
       width: 100%;
-      min-height: 32px;
-      font-size: 12px;
-      border-radius: 6px;
+      min-height: 44px;
+      font-size: 16px;
+      border-radius: 10px;
     }
 
     input, select {
-      padding: 4px 6px;
-      margin-bottom: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
       border: 1px solid #e3e3e8;
       background: #fafafa;
       outline: none;
@@ -108,317 +168,202 @@
     input:focus, select:focus {
       border-color: var(--primary);
       background: #fff;
-      box-shadow: 0 0 0 2px rgba(0,122,255,0.12);
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
     }
 
     button {
-      padding: 4px 6px;
+      padding: 10px 12px;
       border: none;
-      font-size: 12px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform .05s ease, background 0.2s;
+      transition: transform .05s ease;
     }
     button:active { transform: translateY(1px); }
 
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-success { background: var(--success); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-warning { background: var(--warning); color: #fff; }
 
-    .filter-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 8px;
+    /* Floating Action Button (+) */
+    .fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 90px;
+      height: 90px;
+      border-radius: 56px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 24px rgba(0,122,255,0.4);
+      cursor: pointer;
+      z-index: 90;
+      user-select: none;
+      line-height: 1;
+      padding-bottom: 6px;
     }
 
-    /* Bảng Ma Trận Ngang */
-    .table-wrapper {
+    /* Modal Pop-up */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: var(--card);
+      width: 100%;
+      max-width: var(--container-max);
+      padding: 20px;
+      border-radius: 20px 20px 0 0;
+      box-shadow: var(--shadow);
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    /* Danh sách khoản chi */
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #efeff4;
+      position: relative;
+    }
+    .expense-item:last-child { border-bottom: none; }
+    .expense-info .title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+    
+    .expense-info .note {
+      font-size: 13px;
+      font-style: italic;
+      font-weight: normal;
+      color: #555;
+      margin-bottom: 2px;
+    }
+
+    .expense-info .sub-today { font-size: 12px; color: var(--success); font-weight: 600; }
+    .expense-info .sub-old { font-size: 12px; color: var(--text); }
+
+    .expense-amount { font-weight: 700; color: var(--danger); font-size: 15px; text-align: right; }
+
+    /* Menu 3 chấm */
+    .more-btn {
+      background: none; border: none; color: var(--muted);
+      width: 32px; height: 32px; min-height: unset;
+      font-size: 18px; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+    }
+    .more-btn:hover { background: #e5e5ea; }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0; top: 40px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      flex-direction: column;
+      z-index: 100;
+      overflow: hidden;
+      min-width: 110px;
+    }
+    .dropdown-menu.active { display: flex; }
+    .dropdown-item {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      background: none; border: none; text-align: left;
+      border-bottom: 1px solid #f2f2f7;
+      min-height: unset;
+      font-weight: normal;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item.danger { color: var(--danger); }
+    .dropdown-item:hover { background: #f2f2f7; }
+
+    .chart-scroll-wrapper {
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border: 1px solid #e5e5ea;
-      border-radius: 6px;
-      margin-bottom: 8px;
-    }
-
-    table {
-      border-collapse: collapse;
-      font-size: 12px;
-      background: #fff;
-      min-width: 100%;
-    }
-
-    th, td {
-      padding: 2px 3px;
-      text-align: left;
-      border-bottom: 1px solid #efeff4;
-      border-right: 1px solid #efeff4;
-      vertical-align: middle;
-    }
-
-    .sticky-col {
-      position: sticky;
-      left: 0;
-      background: #f8f8fa !important;
-      font-weight: 600;
-      color: var(--text);
-      width: 85px;
-      min-width: 85px;
-      max-width: 85px;
-      z-index: 2;
-      box-shadow: 2px 0 4px rgba(0,0,0,0.04);
-      font-size: 12px;
-      padding-left: 4px;
-      padding-right: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .col-item {
-      min-width: 160px;
-      width: 160px;
-    }
-
-    .cell-header-fixed {
-      background: #f0f8ff;
-      color: #0051a8;
-      font-weight: 700;
-      text-align: center;
-      padding: 6px;
-      border-bottom: 2px solid #b8d8ff;
-    }
-
-    /* Ô NHẬP LIỆU */
-    .cell-input {
-      width: 100%;
-      min-height: 26px;
-      height: 26px;
-      padding: 3px 5px;
-      font-family: inherit;
-      font-size: 12px;
-      line-height: 1.3;
-      border: 1px solid #e3e3e8;
-      border-radius: 4px;
-      background: #fafafa;
-      outline: none;
-      resize: vertical;
-      overflow-y: hidden;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .cell-input:focus {
-      border-color: var(--primary);
-      background: #fff;
-      box-shadow: 0 0 0 2px rgba(0,122,255,0.15);
-    }
-
-    /* Ô XEM DỮ LIỆU (READ-ONLY / SO SÁNH CŨ) */
-    .cell-view-only {
-      width: 100%;
-      min-height: 26px;
-      padding: 4px 6px;
-      font-size: 12px;
-      line-height: 1.3;
-      background: #f9f9fb;
-      border: 1px solid #e5e5ea;
-      border-radius: 4px;
-      color: #3a3a3c;
-      white-space: pre-wrap;
-      word-break: break-word;
-      user-select: text;
     }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .action-btn {
-      width: 100%;
-      min-height: unset;
-      padding: 3px 4px;
-      font-size: 11px;
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    .summary-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--danger);
+      margin: 4px 0 12px;
     }
 
-    .list-item-manage {
+    /* Style riêng cho Tab Cài Đặt */
+    .category-list-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #efeff4;
     }
-
-    .flex-row {
+    .category-list-item:last-child { border-bottom: none; }
+    .category-tag {
       display: flex;
-      gap: 6px;
-    }
-
-    /* Thống kê Model theo Line */
-    .stat-line-block {
-      border: 1px solid #e5e5ea;
-      border-radius: 8px;
-      padding: 8px 10px;
-      margin-bottom: 8px;
-      background: #fafafa;
-    }
-    .stat-line-title {
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--primary);
-      margin-bottom: 4px;
-    }
-    .stat-model-tag {
-      display: inline-block;
-      background: #e5f1ff;
-      color: #0051a8;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      margin: 2px 4px 2px 0;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
       font-weight: 500;
     }
-    .badge-count {
-      font-size: 10px;
-      background: var(--primary);
-      color: #fff;
-      padding: 1px 5px;
-      border-radius: 8px;
-      margin-left: 3px;
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
     }
-    
-    /* Phân biệt nhóm ốc 1 và ốc 2 */
-    .auto-group-1 td { background: #f0fff4; }
-    .auto-group-1 .sticky-col { background: #e5f9ec !important; }
-    .auto-group-2 td { background: #fffbea; }
-    .auto-group-2 .sticky-col { background: #fff6d9 !important; }
-
-    /* CSS Riêng cho Tab Ốc */
-    .screw-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .screw-card {
-      border: 1px solid #e5e5ea;
-      border-radius: 8px;
-      padding: 8px;
-      background: #fafafa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-    }
-
-    .screw-img-wrapper {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      overflow: hidden;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      background: #eee;
-      margin-bottom: 6px;
-      cursor: pointer;
-    }
-
-    .screw-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .screw-info {
-      font-size: 11px;
-      width: 100%;
-      word-break: break-word;
-      margin-bottom: 4px;
-    }
-
-    .screw-code {
-      font-weight: 700;
-      color: var(--primary);
-      font-size: 12px;
-    }
-
-    .screw-size {
-      color: #555;
-      margin-top: 2px;
-    }
-
-    .preview-img-container {
-      margin-top: 6px;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .preview-img-wrapper {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      overflow: hidden;
-      display: none;
-    }
-
-    .preview-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .image-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 9999;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .image-modal-content {
-      max-width: 100%;
-      max-height: 80vh;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      object-fit: contain;
-    }
-
-    .image-modal-close {
-      margin-top: 15px;
-      background: var(--danger);
-      color: white;
+    .btn-delete-cat {
+      background: none;
       border: none;
-      padding: 8px 24px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 20px;
+      color: var(--danger);
+      font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      width: auto;
+      min-height: unset;
+      padding: 4px 8px;
     }
   </style>
 </head>
 <body>
 
-  <!-- TAB BAR -->
+  <!-- TAB BAR PHÍA TRÊN -->
   <div class="tab-bar">
-    <div class="tab-item active" onclick="switchTab('auto', this)">
-      <span class="icon">🤖</span>
-      <span>Automation</span>
+    <div class="tab-item active" onclick="switchTab('record', this)">
+      <span class="icon">📝</span>
+      <span>Ghi chép</span>
     </div>
+    
     <div class="tab-divider"></div>
-    <div class="tab-item" onclick="switchTab('screw', this)">
-      <span class="icon">🔩</span>
-      <span>Ốc</span>
+
+    <div class="tab-item" onclick="switchTab('report', this)">
+      <span class="icon">📊</span>
+      <span>Báo cáo</span>
     </div>
+
     <div class="tab-divider"></div>
+
     <div class="tab-item" onclick="switchTab('settings', this)">
       <span class="icon">⚙️</span>
       <span>Cài đặt</span>
@@ -427,225 +372,308 @@
 
   <div class="container">
 
-    <!-- TAB 1: HỌC TỰ ĐỘNG -->
-    <div id="tab-auto" class="tab-content active">
-      <!-- KHỐI 1: NHẬP LIỆU THÔNG SỐ HỌC TỰ ĐỘNG -->
-      <div class="card">
-        <h2>Machine By Model & Line</h2>
-        <div class="filter-group">
-          <div>
-            <label for="autoLineSelect">Chọn Line</label>
-            <select id="autoLineSelect" onchange="onAutoFilterChange()"></select>
-          </div>
-          <div>
-            <label for="autoModelSelect">Chọn Model</label>
-            <select id="autoModelSelect" onchange="onAutoFilterChange()"></select>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table id="autoMatrixTable">
-            <tbody id="autoMatrixBody"></tbody>
-          </table>
+    <!-- TAB 1: GHI CHÉP -->
+    <div id="tab-record" class="tab-content active">
+      <!-- Tiêu đề đóng băng khi cuộn -->
+      <div class="sticky-header">
+        <div class="header-card">
+          <h2>📋 Chi tiêu</h2>
+          <div id="budgetStatus" class="budget-limit-info">Hạn mức tháng: 14.000.000 VND</div>
         </div>
       </div>
 
-      <!-- KHỐI 2: SO SÁNH CŨ (READ-ONLY BỘ LỌC RIÊNG) -->
-      <div class="card">
-        
-        <div class="filter-group">
-          <div>
-            <select id="oldLineSelect" onchange="renderOldCompareMatrix()"></select>
-          </div>
-          <div>
-          
-            <select id="oldModelSelect" onchange="renderOldCompareMatrix()"></select>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table id="oldCompareMatrixTable">
-            <tbody id="oldCompareMatrixBody"></tbody>
-          </table>
-        </div>
+      <div class="card" style="margin-top: 4px;">
+        <div id="recentExpenseList"></div>
       </div>
+
+      <!-- Nút + Nổi -->
+      <div class="fab" onclick="openModal()">+</div>
     </div>
 
-    <!-- TAB 2: QUẢN LÝ ỐC -->
-    <div id="tab-screw" class="tab-content">
+    <!-- TAB 2: BÁO CÁO -->
+    <div id="tab-report" class="tab-content" style="padding-top: 12px;">
+      
+      <!-- PHẦN 1: TUẦN NÀY -->
       <div class="card">
-        <h2 id="screwFormTitle">🔩 Thêm Ốc Mới</h2>
-        <input type="hidden" id="editingScrewId" value="">
-        
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div>
-            <label for="screwCodeInput">Mã ốc (*)</label>
-            <input type="text" id="screwCodeInput" placeholder="Ví dụ: M3x8-01..." style="margin-bottom: 4px;">
-          </div>
-          <div>
-            <label for="screwSizeInput">Kích thước ốc (*)</label>
-            <input type="text" id="screwSizeInput" placeholder="Ví dụ: M3 x 8mm..." style="margin-bottom: 4px;">
-          </div>
-          <div>
-            <label>Hình ảnh ốc</label>
-            <div class="flex-row">
-              <button class="btn-primary" onclick="document.getElementById('screwCameraInput').click()">📸 Chụp ảnh</button>
-              <button class="btn-warning" onclick="document.getElementById('screwFileInput').click()">📁 Chọn từ máy</button>
-            </div>
-            <input type="file" id="screwCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleScrewImageSelect(event)">
-            <input type="file" id="screwFileInput" accept="image/*" style="display:none" onchange="handleScrewImageSelect(event)">
-          </div>
-
-          <div class="preview-img-container">
-            <div id="screwImgPreviewWrapper" class="preview-img-wrapper">
-              <img id="screwImgPreview" class="preview-img" src="" alt="Xem trước ảnh">
-            </div>
-          </div>
-
-          <div class="flex-row">
-            <button id="saveScrewBtn" class="btn-success" onclick="saveScrew()" style="height: 36px; margin-top: 4px;">+ Thêm vào danh sách</button>
-            <button id="cancelEditScrewBtn" class="btn-danger" onclick="cancelScrewEdit()" style="height: 36px; margin-top: 4px; display: none;">Hủy sửa</button>
-          </div>
-        </div>
+        <h2>📊 Báo cáo Tuần này <span id="labelWeekRange" style="font-size:13px; color:var(--muted); font-weight:normal;"></span></h2>
+        <div class="summary-num" id="totalWeek">0 VND</div>
+        <canvas id="pieChartWeek" style="max-height:220px; width:100%;"></canvas>
+        <div id="breakdownWeek" style="margin-top:16px;"></div>
       </div>
 
+      <!-- PHẦN 2: THÁNG NÀY -->
       <div class="card">
-        <h2>📋 Danh sách Ốc đã thêm</h2>
-        <div id="screwListContainer" class="screw-grid"></div>
+        <h2>📈 Báo cáo Tháng này <span id="labelMonthRange" style="font-size:13px; color:var(--muted); font-weight:normal;"></span></h2>
+        <div class="summary-num" id="totalMonth">0 VND</div>
+        <canvas id="pieChartMonth" style="max-height:220px; width:100%;"></canvas>
+        <div id="breakdownMonth" style="margin-top:16px;"></div>
       </div>
+
+      <!-- PHẦN 3: THÁNG TRƯỚC -->
+      <div class="card">
+        <h2>📉 Báo cáo Tháng trước <span id="labelLastMonthRange" style="font-size:13px; color:var(--muted); font-weight:normal;"></span></h2>
+        <div class="summary-num" id="totalLastMonth">0 VND</div>
+        <canvas id="pieChartLastMonth" style="max-height:220px; width:100%;"></canvas>
+        <div id="breakdownLastMonth" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- PHẦN 4: NĂM NAY -->
+<div class="card">
+  <h2>📅 Báo cáo Năm nay</h2>
+
+  <div class="summary-num" id="totalYear">0 VND</div>
+
+  <div class="chart-scroll-wrapper">
+    <canvas id="barChartYear" style="height:220px;"></canvas>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3 style="font-size:15px;margin-bottom:10px;">
+      Chi tiết tháng:
+      <span id="selectedYearMonthLabel"></span>
+    </h3>
+
+    <div class="summary-num" id="selectedYearMonthTotal">
+      0 VND
     </div>
+
+    <canvas
+      id="selectedYearMonthPie"
+      style="max-height:220px;width:100%;">
+    </canvas>
+
+    <div
+      id="selectedYearMonthBreakdown"
+      style="margin-top:16px;">
+    </div>
+  </div>
+</div>
+
+
+      <!-- PHẦN 5: 5 NĂM GẦN NHẤT -->
+      <div class="card">
+  <h2>
+📆 Báo cáo 5 năm gần nhất
+<span id="label5YearsRange"
+style="font-size:13px;color:var(--muted);font-weight:normal;">
+</span>
+</h2>
+
+  <div class="summary-num" id="total5Years">0 VND</div>
+
+  <div class="chart-scroll-wrapper">
+    <canvas id="barChart5Years" style="height:220px;"></canvas>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3 style="font-size:15px;margin-bottom:10px;">
+      Chi tiết năm:
+      <span id="selectedFiveYearLabel"></span>
+    </h3>
+
+    <div class="summary-num" id="selectedFiveYearTotal">
+      0 VND
+    </div>
+
+    <canvas
+      id="selectedFiveYearPie"
+      style="max-height:220px;width:100%;">
+    </canvas>
+
+    <div
+      id="selectedFiveYearBreakdown"
+      style="margin-top:16px;">
+    </div>
+  </div>
+
+</div>
 
     <!-- TAB 3: CÀI ĐẶT -->
-    <div id="tab-settings" class="tab-content">
-
+    <div id="tab-settings" class="tab-content" style="padding-top: 12px;">
+      
+      <!-- CÀI ĐẶT DANH MỤC -->
       <div class="card">
-        <h2>📋 Thống kê Dữ liệu đã ghi theo Line</h2>
-        <div id="lineSummaryContainer"></div>
+        <h2>🏷️ Quản lý Danh mục</h2>
+        <div id="settingsCategoryList"></div>
+
+        <button class="btn-primary" onclick="openAddCategoryModal()" style="margin-top: 12px;">+ Thêm danh mục mới</button>
       </div>
 
+      <!-- CÀI ĐẶT HẠN MỨC CHI TIÊU THÁNG -->
       <div class="card">
-        <h2>🤖 Cài đặt Tên máy cố định theo Line</h2>
-        <label for="settingLineSelect">Chọn Line để thiết lập danh sách máy</label>
-        <select id="settingLineSelect" onchange="renderLineMachinesSetting()"></select>
-        
-        <div id="lineMachinesListContainer" style="margin-top: 8px;"></div>
-        
-        <div class="flex-row" style="margin-top: 8px;">
-          <input type="text" id="newMachineInput" placeholder="Tên máy mới..." style="margin-bottom:0;">
-          <button class="btn-primary" onclick="addNewMachineToLine()" style="width: auto; white-space: nowrap;">+ Thêm máy</button>
-        </div>
+        <h2>🎯 Hạn mức chi tiêu tháng</h2>
+        <label for="monthlyBudgetInput">Số tiền hạn mức (VND)</label>
+        <input type="text" id="monthlyBudgetInput" inputmode="numeric" placeholder="14.000.000">
+        <button class="btn-success" onclick="saveMonthlyBudget()">Lưu hạn mức</button>
       </div>
 
+      <!-- SAO LƯU & PHỤC HỒI (Đã chuyển sang Tab Cài đặt) -->
       <div class="card">
-        <h2>📍 Quản lý Danh sách Line</h2>
-        <div id="linesListContainer"></div>
-        <div class="flex-row" style="margin-top: 8px;">
-          <input type="text" id="newLineInput" placeholder="Tên Line mới..." style="margin-bottom:0;">
-          <button class="btn-primary" onclick="addNewLine()" style="width: auto; white-space: nowrap;">Thêm Line</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>📱 Quản lý Danh sách Model</h2>
-        <div id="modelsListContainer"></div>
-        <div class="flex-row" style="margin-top: 8px;">
-          <input type="text" id="newModelInput" placeholder="Tên Model mới..." style="margin-bottom:0;">
-          <button class="btn-primary" onclick="addNewModel()" style="width: auto; white-space: nowrap;">Thêm Model</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>🗂️ Sao lưu & Phục hồi dữ liệu</h2>
-        <button class="btn-primary" onclick="exportData()" style="margin-bottom:8px;">📤 Xuất dữ liệu (.json)</button>
+        <h2>🗂️ Sao lưu & Phục hồi</h2>
+        <button class="btn-primary" onclick="exportData()" style="margin-bottom:10px;">📤 Xuất dữ liệu (.json)</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-        <button class="btn-success" onclick="document.getElementById('importFile').click()" style="margin-bottom:8px;">📥 Phục hồi dữ liệu</button>
-        <button class="btn-danger" onclick="resetToDefaults()">🔄 Tải lại dữ liệu mặc định</button>
+        <button class="btn-success" onclick="document.getElementById('importFile').click()">📥 Phục hồi dữ liệu</button>
       </div>
+
     </div>
 
   </div>
 
-  <!-- MODAL XEM ẢNH LỚN -->
-  <div id="imageModal" class="image-modal" onclick="closeImageModal(event)">
-    <img id="imageModalImg" class="image-modal-content" src="" alt="Ảnh phóng to" onclick="event.stopPropagation()">
-    <button class="image-modal-close" onclick="closeImageModal(event)">✕ Thoát xem ảnh</button>
+  <!-- MODAL THÊM / SỬA KHOẢN CHI -->
+  <div class="modal-overlay" id="expenseModal" onclick="closeModalOnOverlay(event)">
+    <div class="modal-card">
+      <h2 id="modalTitle" style="margin-bottom:16px;">Thêm khoản chi mới</h2>
+      <input type="hidden" id="editId">
+      
+      <!-- DANH MỤC -->
+      <label for="expCategory">Danh mục</label>
+      <select id="expCategory"></select>
+
+      <!-- SỐ TIỀN -->
+      <label for="expAmount">Số tiền (VND)</label>
+      <input type="text" id="expAmount" inputmode="numeric" placeholder="0">
+
+      <label for="expNote">Ghi chú</label>
+      <input type="text" id="expNote" placeholder="Ghi chú...">
+
+      <label for="expDateTime">Ngày & Giờ</label>
+      <input type="datetime-local" id="expDateTime">
+
+      <div class="grid-2" style="margin-top:8px;">
+        <button type="button" style="background:#e5e5ea; color:#333;" onclick="closeModal()">Hủy</button>
+        <button type="button" class="btn-primary" onclick="saveExpense()">Lưu khoản chi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THÊM DANH MỤC MỚI -->
+  <div class="modal-overlay" id="addCategoryModal" onclick="closeAddCatModalOnOverlay(event)">
+    <div class="modal-card">
+      <h2 style="margin-bottom:16px;">Thêm danh mục mới</h2>
+      
+      <label for="newCatName">Tên danh mục (ví dụ: 🎮 Giải trí)</label>
+      <input type="text" id="newCatName" placeholder="Nhập tên danh mục (có thể bao gồm icon)...">
+
+      <label for="newCatColor">Màu đại diện</label>
+      <input type="color" id="newCatColor" value="#007aff" style="height:44px; padding:2px; cursor:pointer;">
+
+      <div class="grid-2" style="margin-top:8px;">
+        <button type="button" style="background:#e5e5ea; color:#333;" onclick="closeAddCategoryModal()">Hủy</button>
+        <button type="button" class="btn-primary" onclick="saveNewCategory()">Thêm danh mục</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const DEFAULT_LINES = ["A1A", "A1B", "A2A", "A2B", "A3A", "A3B", "A4A", "A4B", "A5A", "A5B"];
-    const DEFAULT_MODELS = [];
-    const DEFAULT_LINE_MACHINES = {
-      "A1A": [], "A1B": [], "A2A": [], "A2B": [],
-      "A3A": [], "A3B": [], "A4A": [], "A4B": [],
-      "A5A": [], "A5B": []
-    };
+    /* ===== DANH MỤC MẶC ĐỊNH & MÀU SẮC (Đã đổi icon "Khác" thành 🔖) ===== */
+    const DEFAULT_CATEGORIES = [
+      { name: "⛽ Đổ xăng", color: "#ff9500", isDefault: true },
+      { name: "🌐 Cước thoại Internet", color: "#30b0c7", isDefault: true },
+      { name: "⚡ Điện Nước", color: "#007aff", isDefault: true },
+      { name: "🏥 Khám chữa bệnh", color: "#ff2d55", isDefault: true },
+      { name: "🎓 Tiền Học", color: "#af52de", isDefault: true },
+      { name: "🍜 Ăn Uống", color: "#ff9500", isDefault: true },
+      { name: "✈️ Du lịch", color: "#5856d6", isDefault: true },
+      { name: "🛒 Mua Sắm", color: "#34c759", isDefault: true },
+      { name: "🔧 Sửa xe", color: "#ff3b30", isDefault: true },
+      { name: "✉️ Đám hiếu hỉ", color: "#ff3b30", isDefault: true },
+      { name: "‼️ Chưa phân loại ", color: "#8e8e93", isDefault: true }
+    ];
 
-    let lines = [];
-    let models = [];
-    let lineMachines = {};
-    let autoData = [];
-    let screwData = [];
-    let tempScrewImageBase64 = "";
+    let categoriesList = [];
+    let expenses = [];
+    let monthlyBudget = 14000000;
+    let selectedYearMonth = new Date().getMonth();
+let selectedFiveYear = new Date().getFullYear();
 
-    function loadData() {
-      lines = JSON.parse(localStorage.getItem("app_lines")) || DEFAULT_LINES;
-      models = JSON.parse(localStorage.getItem("app_models")) || DEFAULT_MODELS;
-      lineMachines = JSON.parse(localStorage.getItem("app_line_machines")) || DEFAULT_LINE_MACHINES;
-      autoData = JSON.parse(localStorage.getItem("app_auto_data")) || [];
-      screwData = JSON.parse(localStorage.getItem("app_screw_data")) || [];
-
-      lines.forEach(l => {
-        if (!lineMachines[l]) lineMachines[l] = [];
-      });
-
-      updateSelectOptions();
+    /* ===== UTILS ===== */
+    function getNowForInput() {
+      const now = new Date();
+      const yr = now.getFullYear();
+      const mo = String(now.getMonth() + 1).padStart(2, '0');
+      const da = String(now.getDate()).padStart(2, '0');
+      const hr = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      return `${yr}-${mo}-${da}T${hr}:${mi}`;
     }
 
-    function saveData() {
-      localStorage.setItem("app_lines", JSON.stringify(lines));
-      localStorage.setItem("app_models", JSON.stringify(models));
-      localStorage.setItem("app_line_machines", JSON.stringify(lineMachines));
-      localStorage.setItem("app_auto_data", JSON.stringify(autoData));
-      localStorage.setItem("app_screw_data", JSON.stringify(screwData));
-    }
+    function formatDisplayDateTime(dtStr) {
+      if (!dtStr) return { text: '', isToday: false };
+      const d = new Date(dtStr);
+      if (isNaN(d.getTime())) return { text: dtStr, isToday: false };
 
-    function resetToDefaults() {
-      if (confirm("Thao tác này sẽ đặt lại ứng dụng: Xoá tất cả dữ liệu đã lưu. Bạn có chắc không?")) {
-        lines = DEFAULT_LINES;
-        models = DEFAULT_MODELS;
-        lineMachines = {
-          "A1A": [], "A1B": [], "A2A": [], "A2B": [], "A3A": [], "A3B": [], "A4A": [], "A4B": [], "A5A": [], "A5B": []
-        };
-        autoData = [];
-        screwData = [];
-        saveData();
-        updateSelectOptions();
-        renderSettings();
-        renderAutoMatrix();
-        renderOldCompareMatrix();
-        renderScrewList();
-        alert("Đã xóa toàn bộ dữ liệu và đặt lại trạng thái mặc định!");
+      const now = new Date();
+      const isToday = d.getFullYear() === now.getFullYear() &&
+                      d.getMonth() === now.getMonth() &&
+                      d.getDate() === now.getDate();
+
+      const hr = String(d.getHours()).padStart(2, '0');
+      const mi = String(d.getMinutes()).padStart(2, '0');
+
+      if (isToday) {
+        return { text: `Hôm nay ${hr}:${mi}`, isToday: true };
+      } else {
+        const da = String(d.getDate()).padStart(2, '0');
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const yr = d.getFullYear();
+        return { text: `${da}/${mo}/${yr} ${hr}:${mi}`, isToday: false };
       }
     }
 
-    function updateSelectOptions() {
-      const lineOptions = lines.length 
-        ? lines.map(l => `<option value="${l}">${l}</option>`).join('') 
-        : '<option value="">-- Chưa có Line --</option>';
-
-      const modelOptions = models.length 
-        ? models.map(m => `<option value="${m}">${m}</option>`).join('') 
-        : '<option value="">-- Chưa có Model --</option>';
-
-      document.getElementById('autoLineSelect').innerHTML = lineOptions;
-      document.getElementById('autoModelSelect').innerHTML = modelOptions;
-      
-      document.getElementById('oldLineSelect').innerHTML = lineOptions;
-      document.getElementById('oldModelSelect').innerHTML = modelOptions;
-
-      document.getElementById('settingLineSelect').innerHTML = lineOptions;
+    function formatNum(n) {
+      return (Number(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
+    function parseNum(str) {
+      return Number((str || "").toString().replace(/\./g, "")) || 0;
+    }
+
+    // Tự động định dạng ô nhập tiền khoản chi
+    const expAmountInput = document.getElementById('expAmount');
+    expAmountInput.addEventListener('input', () => {
+      let v = expAmountInput.value.replace(/\D/g, "");
+      expAmountInput.value = v ? formatNum(v) : "";
+    });
+
+    // Tự động định dạng ô nhập hạn mức
+    const budgetInput = document.getElementById('monthlyBudgetInput');
+    budgetInput.addEventListener('input', () => {
+      let v = budgetInput.value.replace(/\D/g, "");
+      budgetInput.value = v ? formatNum(v) : "";
+    });
+
+    /* ===== LOCAL STORAGE ===== */
+    function saveData() {
+      localStorage.setItem("expenses_data_v5", JSON.stringify(expenses));
+      localStorage.setItem("categories_data_v5", JSON.stringify(categoriesList));
+      localStorage.setItem("monthly_budget_v5", monthlyBudget.toString());
+    }
+
+    function loadData() {
+      expenses = JSON.parse(localStorage.getItem("expenses_data_v5")) || [];
+      categoriesList = JSON.parse(localStorage.getItem("categories_data_v5")) || DEFAULT_CATEGORIES;
+      monthlyBudget = Number(localStorage.getItem("monthly_budget_v5")) || 14000000;
+
+      // Cập nhật nâng cấp icon Khác nếu người dùng có dữ liệu cũ
+      categoriesList = categoriesList.map(c => {
+        if (c.name === "📦 Khác") return { ...c, name: "🔖 Khác" };
+        return c;
+      });
+
+      expenses = expenses.map(e => {
+        if (e.category === "📦 Khác") return { ...e, category: "🔖 Khác" };
+        return e;
+      });
+
+      updateCategoryDropdown();
+    }
+
+    function updateCategoryDropdown() {
+      const selectEl = document.getElementById('expCategory');
+      selectEl.innerHTML = categoriesList.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    }
+
+    /* ===== CHUYỂN TAB ===== */
     function switchTab(tabName, el) {
       document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
       document.querySelectorAll('.tab-item').forEach(ti => ti.classList.remove('active'));
@@ -653,614 +681,695 @@
       document.getElementById('tab-' + tabName).classList.add('active');
       el.classList.add('active');
 
-      if (tabName === 'auto') {
-        renderAutoMatrix();
-        renderOldCompareMatrix();
-      }
-      else if (tabName === 'screw') renderScrewList();
+      if (tabName === 'report') renderReport();
       else if (tabName === 'settings') renderSettings();
+      else renderRecords();
     }
 
-    function autoResizeTextarea(el) {
-      el.style.height = '26px';
-      if (el.scrollHeight > 26) {
-        el.style.height = (el.scrollHeight) + 'px';
-      }
-    }
-
-    /* ===== TAB 1: HỌC TỰ ĐỘNG & SO SÁNH CŨ ===== */
-    const AUTO_FIELDS = [
-      { key: 'congDung', label: 'Công dụng' },
-      { key: 'maOc1', label: 'Mã ốc hộp 1' },
-      { key: 'soOc1', label: 'Số ốc 1 bắn' },
-      { key: 'lucVit1', label: 'Lực vít 1' },
-      { key: 'maOc2', label: 'Mã ốc hộp 2' },
-      { key: 'soOc2', label: 'Số ốc 2 bắn' },
-      { key: 'lucVit2', label: 'Lực vít 2' },
-      { key: 'ghiChu', label: 'Ghi chú' }
-    ];
-
-    function onAutoFilterChange() {
-      const autoLine = document.getElementById('autoLineSelect').value;
-      const autoModel = document.getElementById('autoModelSelect').value;
+    /* ===== MODAL THÊM / SỬA KHOẢN CHI ===== */
+    function openModal(id = null) {
+      closeAllDropdowns();
+      updateCategoryDropdown();
       
-      // Tự động đồng bộ sang bộ lọc bên dưới để tiện so sánh mặc định
-      document.getElementById('oldLineSelect').value = autoLine;
-      document.getElementById('oldModelSelect').value = autoModel;
+      const selectEl = document.getElementById('expCategory');
 
-      renderAutoMatrix();
-      renderOldCompareMatrix();
-    }
-
-    // 1. Render Bảng Nhập Liệu
-    function renderAutoMatrix() {
-      const selectedLine = document.getElementById('autoLineSelect').value;
-      const selectedModel = document.getElementById('autoModelSelect').value;
-      const tbody = document.getElementById('autoMatrixBody');
-
-      if (!selectedLine) {
-        tbody.innerHTML = '<tr><td style="padding:15px; text-align:center; color: var(--muted);">Chưa chọn Line nào.</td></tr>';
-        return;
-      }
-
-      if (!selectedModel) {
-        tbody.innerHTML = `<tr><td style="padding:15px; text-align:center; color: var(--muted);">
-          Chưa có Model nào.<br>
-          Vui lòng vào <b>Tab Cài đặt</b> ➔ Mục <b>"Quản lý Danh sách Model"</b> để thêm Model mới.
-        </td></tr>`;
-        return;
-      }
-
-      const machinesList = lineMachines[selectedLine] || [];
-
-      if (machinesList.length === 0) {
-        tbody.innerHTML = `<tr><td style="padding:15px; text-align:center; color: var(--muted);">
-          Line <b>${selectedLine}</b> hiện chưa có máy nào.<br>
-          Vui lòng vào <b>Tab Cài đặt</b> ➔ Mục <b>"Cài đặt Tên máy cố định theo Line"</b> để thêm máy.
-        </td></tr>`;
-        return;
-      }
-
-      let headerRow = '<tr><td class="sticky-col">Máy</td>';
-      machinesList.forEach(mName => {
-        headerRow += `<td class="col-item cell-header-fixed">${mName}</td>`;
-      });
-      headerRow += '</tr>';
-
-      let htmlEditable = headerRow;
-
-      AUTO_FIELDS.forEach(field => {
-        let rowClass = '';
-        if (['maOc1', 'soOc1', 'lucVit1'].includes(field.key)) {
-          rowClass = 'auto-group-1';
-        } else if (['maOc2', 'soOc2', 'lucVit2'].includes(field.key)) {
-          rowClass = 'auto-group-2';
-        }
+      if (id) {
+        const item = expenses.find(e => e.id === id);
+        if (!item) return;
+        document.getElementById('modalTitle').innerText = "Sửa khoản chi";
+        document.getElementById('editId').value = item.id;
+        selectEl.value = item.category;
+        document.getElementById('expAmount').value = formatNum(item.amount);
+        document.getElementById('expNote').value = item.note || "";
+        document.getElementById('expDateTime').value = item.datetime || getNowForInput();
+      } else {
+        document.getElementById('modalTitle').innerText = "Thêm khoản chi mới";
+        document.getElementById('editId').value = "";
         
-        htmlEditable += `<tr class="${rowClass}">`;
-        htmlEditable += `<td class="sticky-col">${field.label}</td>`;
+        // Ưu tiên chọn danh mục "Khác" đầu tiên khi nhấn +
+        const otherCat = categoriesList.find(c => c.name.includes("Chưa phân loại"));
+        if (otherCat) {
+          selectEl.value = otherCat.name;
+        } else if (categoriesList.length > 0) {
+          selectEl.value = categoriesList[0].name;
+        }
 
-        machinesList.forEach(mName => {
-          const item = autoData.find(d => d.line === selectedLine && d.model === selectedModel && d.may === mName);
-          const val = item ? (item[field.key] || '') : '';
-          
-          htmlEditable += `<td class="col-item">
-            <textarea class="cell-input" oninput="autoResizeTextarea(this)" onchange="updateAutoValue('${selectedLine}', '${selectedModel}', '${mName}', '${field.key}', this.value)">${val}</textarea>
-          </td>`;
-        });
+        document.getElementById('expAmount').value = "";
+        document.getElementById('expNote').value = "";
+        document.getElementById('expDateTime').value = getNowForInput();
+      }
 
-        htmlEditable += '</tr>';
-      });
+      document.getElementById('expenseModal').classList.add('active');
+      setTimeout(() => document.getElementById('expAmount').focus(), 100);
+    }
 
-      tbody.innerHTML = htmlEditable;
+    function closeModal() {
+      document.getElementById('expenseModal').classList.remove('active');
+    }
 
-      setTimeout(() => {
-        document.querySelectorAll('#autoMatrixTable .cell-input').forEach(el => autoResizeTextarea(el));
+    function closeModalOnOverlay(e) {
+      if (e.target.classList.contains('modal-overlay')) closeModal();
+    }
+
+    /* ===== CẬP NHẬT KHOẢN CHI ===== */
+    function saveExpense() {
+      const editId = document.getElementById('editId').value;
+      const amount = parseNum(document.getElementById('expAmount').value);
+      const category = document.getElementById('expCategory').value;
+      const note = document.getElementById('expNote').value.trim();
+      const datetime = document.getElementById('expDateTime').value || getNowForInput();
+
+      if (amount <= 0) {
+        alert("Vui lòng nhập số tiền hợp lệ!");
+        return;
+      }
+
+      if (editId) {
+        const idx = expenses.findIndex(e => e.id == editId);
+        if (idx !== -1) {
+          expenses[idx] = { ...expenses[idx], amount, category, note, datetime };
+        }
+      } else {
+        expenses.unshift({ id: Date.now(), amount, category, note, datetime });
+      }
+
+      saveData();
+      closeModal();
+      renderRecords();
+    }
+
+    function deleteExpense(id) {
+      closeAllDropdowns();
+      if (confirm("Xóa khoản chi này?")) {
+        expenses = expenses.filter(e => e.id !== id);
+        saveData();
+        renderRecords();
+      }
+    }
+
+    /* ===== MENU 3 CHẤM ===== */
+    function toggleDropdown(e, id) {
+      e.stopPropagation();
+      const currentMenu = document.getElementById(`dropdown-${id}`);
+      const isVisible = currentMenu.classList.contains('active');
+      closeAllDropdowns();
+      if (!isVisible) {
+        currentMenu.classList.add('active');
+      }
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active'));
+    }
+
+    document.addEventListener('click', closeAllDropdowns);
+
+    /* ===== TÍNH TOÁN & HIỂN THỊ CẢNH BÁO HẠN MỨC THÁNG ===== */
+    function updateBudgetStatus() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      const currentMonthTotal = expenses.reduce((sum, e) => {
+        const d = new Date(e.datetime);
+        if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+          return sum + e.amount;
+        }
+        return sum;
       }, 0);
-    }
 
-    // 2. Render Bảng So Sánh Cũ (Read-only, Bộ Lọc Độc Lập)
-    function renderOldCompareMatrix() {
-      const selectedLine = document.getElementById('oldLineSelect').value;
-      const selectedModel = document.getElementById('oldModelSelect').value;
-      const tbody = document.getElementById('oldCompareMatrixBody');
+      const statusEl = document.getElementById('budgetStatus');
+      statusEl.className = 'budget-limit-info';
 
-      if (!selectedLine) {
-        tbody.innerHTML = '<tr><td style="padding:15px; text-align:center; color: var(--muted);">Chưa chọn Line so sánh.</td></tr>';
-        return;
-      }
+      const textBase = `Hạn mức tháng: ${formatNum(monthlyBudget)} VND \n(Đã chi: ${formatNum(currentMonthTotal)} VND)`;
 
-      if (!selectedModel) {
-        tbody.innerHTML = '<tr><td style="padding:15px; text-align:center; color: var(--muted);">Chưa chọn Model so sánh.</td></tr>';
-        return;
-      }
+      const warnLimit = monthlyBudget * 0.8;
 
-      const machinesList = lineMachines[selectedLine] || [];
-
-      if (machinesList.length === 0) {
-        tbody.innerHTML = `<tr><td style="padding:15px; text-align:center; color: var(--muted);">Line <b>${selectedLine}</b> chưa có máy.</td></tr>`;
-        return;
-      }
-
-      let headerRow = '<tr><td class="sticky-col">Máy</td>';
-      machinesList.forEach(mName => {
-        headerRow += `<td class="col-item cell-header-fixed">${mName}</td>`;
-      });
-      headerRow += '</tr>';
-
-      let htmlViewOnly = headerRow;
-
-      AUTO_FIELDS.forEach(field => {
-        let rowClass = '';
-        if (['maOc1', 'soOc1', 'lucVit1'].includes(field.key)) {
-          rowClass = 'auto-group-1';
-        } else if (['maOc2', 'soOc2', 'lucVit2'].includes(field.key)) {
-          rowClass = 'auto-group-2';
-        }
-
-        htmlViewOnly += `<tr class="${rowClass}">`;
-        htmlViewOnly += `<td class="sticky-col">${field.label}</td>`;
-
-        machinesList.forEach(mName => {
-          const item = autoData.find(d => d.line === selectedLine && d.model === selectedModel && d.may === mName);
-          const val = item ? (item[field.key] || '') : '';
-
-          htmlViewOnly += `<td class="col-item">
-            <div class="cell-view-only">${val}</div>
-          </td>`;
-        });
-
-        htmlViewOnly += '</tr>';
-      });
-
-      tbody.innerHTML = htmlViewOnly;
-    }
-
-    function updateAutoValue(line, model, may, field, value) {
-      let item = autoData.find(d => d.line === line && d.model === model && d.may === may);
-      if (!item) {
-        item = { id: Date.now(), line, model, may };
-        autoData.push(item);
-      }
-      item[field] = value;
-      saveData();
-
-      // Cập nhật lại bảng So Sánh Cũ ngay lập tức nếu đang cùng soi Line/Model này
-      const oldLine = document.getElementById('oldLineSelect').value;
-      const oldModel = document.getElementById('oldModelSelect').value;
-      if (oldLine === line && oldModel === model) {
-        renderOldCompareMatrix();
-      }
-    }
-
-    /* ===== TAB 2: QUẢN LÝ ỐC ===== */
-    function handleScrewImageSelect(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 600;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDim) {
-              height *= maxDim / width;
-              width = maxDim;
-            }
-          } else {
-            if (height > maxDim) {
-              width *= maxDim / height;
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          tempScrewImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-          const previewWrapper = document.getElementById('screwImgPreviewWrapper');
-          const previewEl = document.getElementById('screwImgPreview');
-          previewEl.src = tempScrewImageBase64;
-          previewWrapper.style.display = 'block';
-        };
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function saveScrew() {
-      const code = document.getElementById('screwCodeInput').value.trim();
-      const size = document.getElementById('screwSizeInput').value.trim();
-      const editingId = document.getElementById('editingScrewId').value;
-
-      if (!code) { alert("Vui lòng nhập Mã ốc!"); return; }
-      if (!size) { alert("Vui lòng nhập Kích thước ốc!"); return; }
-
-      if (editingId) {
-        const screw = screwData.find(s => s.id == editingId);
-        if (screw) {
-          screw.code = code;
-          screw.size = size;
-          if (tempScrewImageBase64) {
-            screw.image = tempScrewImageBase64;
-          }
-        }
+      if (currentMonthTotal < warnLimit) {
+        statusEl.classList.add('budget-safe');
+        statusEl.innerText = textBase;
+      } else if (currentMonthTotal <= monthlyBudget) {
+        statusEl.classList.add('budget-warning');
+        statusEl.innerText = `${textBase} - Chú ý chi tiêu!`;
       } else {
-        const newScrew = {
-          id: Date.now(),
-          code: code,
-          size: size,
-          image: tempScrewImageBase64 || ""
-        };
-        screwData.unshift(newScrew);
-      }
-
-      saveData();
-      cancelScrewEdit();
-      renderScrewList();
-    }
-
-    function editScrew(id) {
-      const screw = screwData.find(s => s.id === id);
-      if (!screw) return;
-
-      document.getElementById('screwFormTitle').innerText = "✏️ Cập nhật Thông tin Ốc";
-      document.getElementById('editingScrewId').value = screw.id;
-      document.getElementById('screwCodeInput').value = screw.code;
-      document.getElementById('screwSizeInput').value = screw.size;
-
-      const previewWrapper = document.getElementById('screwImgPreviewWrapper');
-      const previewEl = document.getElementById('screwImgPreview');
-
-      if (screw.image) {
-        previewEl.src = screw.image;
-        previewWrapper.style.display = 'block';
-      } else {
-        previewWrapper.style.display = 'none';
-        previewEl.src = '';
-      }
-
-      tempScrewImageBase64 = "";
-      document.getElementById('saveScrewBtn').innerText = "💾 Cập nhật";
-      document.getElementById('cancelEditScrewBtn').style.display = 'block';
-
-      document.getElementById('tab-screw').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function cancelScrewEdit() {
-      document.getElementById('screwFormTitle').innerText = "🔩 Thêm Ốc Mới";
-      document.getElementById('editingScrewId').value = "";
-      document.getElementById('screwCodeInput').value = "";
-      document.getElementById('screwSizeInput').value = "";
-      document.getElementById('screwCameraInput').value = "";
-      document.getElementById('screwFileInput').value = "";
-      document.getElementById('screwImgPreviewWrapper').style.display = 'none';
-      document.getElementById('screwImgPreview').src = "";
-      tempScrewImageBase64 = "";
-
-      document.getElementById('saveScrewBtn').innerText = "+ Thêm vào danh sách";
-      document.getElementById('cancelEditScrewBtn').style.display = 'none';
-    }
-
-    function renderScrewList() {
-      const container = document.getElementById('screwListContainer');
-
-      if (screwData.length === 0) {
-        container.innerHTML = '<div style="color:var(--muted); font-style:italic; grid-column: 1 / -1; text-align:center; padding: 10px;">Chưa có loại ốc nào được thêm.</div>';
-        return;
-      }
-
-      const defaultImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23ccc" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="21 15l-5-5L5 21"/></svg>';
-
-      container.innerHTML = screwData.map(item => `
-        <div class="screw-card">
-          <div class="screw-img-wrapper" onclick="openImageModal('${item.image || defaultImg}')">
-            <img class="screw-img" src="${item.image || defaultImg}" alt="${item.code}">
-          </div>
-          <div class="screw-info">
-            <div class="screw-code">${item.code}</div>
-            <div class="screw-size">${item.size}</div>
-          </div>
-          <div class="flex-row" style="width:100%; gap:4px;">
-            <button class="btn-warning action-btn" onclick="editScrew(${item.id})">✏️ Sửa</button>
-            <button class="btn-danger action-btn" onclick="deleteScrew(${item.id})">🗑️ Xóa</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function deleteScrew(id) {
-      if (confirm("Bạn có chắc muốn xóa loại ốc này?")) {
-        screwData = screwData.filter(d => d.id !== id);
-        saveData();
-        renderScrewList();
+        statusEl.classList.add('budget-danger');
+        statusEl.innerText = `${textBase} - Vượt hạn mức!`;
       }
     }
 
-    function openImageModal(imgSrc) {
-      if (!imgSrc) return;
-      document.getElementById('imageModalImg').src = imgSrc;
-      document.getElementById('imageModal').style.display = 'flex';
-    }
-
-    function closeImageModal(e) {
-      document.getElementById('imageModal').style.display = 'none';
-      document.getElementById('imageModalImg').src = '';
-    }
-
-    /* ===== TAB 3: CÀI ĐẶT ===== */
-    function renderSettings() {
-      renderLineMachinesSetting();
-
-      const linesContainer = document.getElementById('linesListContainer');
-      if (lines.length === 0) {
-        linesContainer.innerHTML = '<div style="color:var(--muted); font-style:italic;">Chưa có Line nào.</div>';
-      } else {
-        linesContainer.innerHTML = lines.map((l, index) => `
-          <div class="list-item-manage">
-            <span><b>Line:</b> ${l}</span>
-            <div class="flex-row">
-              <button class="btn-warning action-btn" style="width:auto;" onclick="editLine(${index})">✏️ Sửa</button>
-              <button class="btn-danger action-btn" style="width:auto;" onclick="deleteLine(${index})">🗑️ Xóa</button>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      const modelsContainer = document.getElementById('modelsListContainer');
-      if (models.length === 0) {
-        modelsContainer.innerHTML = '<div style="color:var(--muted); font-style:italic;">Chưa có Model nào được thêm.</div>';
-      } else {
-        modelsContainer.innerHTML = models.map((m, index) => `
-          <div class="list-item-manage">
-            <span><b>Model:</b> ${m}</span>
-            <div class="flex-row">
-              <button class="btn-warning action-btn" style="width:auto;" onclick="editModel(${index})">✏️ Sửa</button>
-              <button class="btn-danger action-btn" style="width:auto;" onclick="deleteModel(${index})">🗑️ Xóa</button>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      renderSummary();
-    }
-
-    function renderLineMachinesSetting() {
-      const line = document.getElementById('settingLineSelect').value;
-      const container = document.getElementById('lineMachinesListContainer');
-      if (!line) { container.innerHTML = ''; return; }
-
-      const mList = lineMachines[line] || [];
-
-      if (mList.length === 0) {
-        container.innerHTML = `<div style="color:var(--muted); font-style:italic;">Chưa có máy nào được thêm vào Line ${line}.</div>`;
-        return;
-      }
-
-      container.innerHTML = mList.map((mName, index) => `
-        <div class="list-item-manage">
-          <span><b>Máy ${index + 1}:</b> ${mName}</span>
-          <div class="flex-row">
-            <button class="btn-warning action-btn" style="width:auto;" onclick="editMachineInLine('${line}', ${index})">✏️ Sửa</button>
-            <button class="btn-danger action-btn" style="width:auto;" onclick="deleteMachineInLine('${line}', ${index})">🗑️ Xóa</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function addNewMachineToLine() {
-      const line = document.getElementById('settingLineSelect').value;
-      const input = document.getElementById('newMachineInput');
-      const val = input.value.trim();
-
-      if (!line) { alert("Vui lòng chọn Line!"); return; }
-      if (!val) return;
+    /* ===== TAB 1: RENDER GHI CHÉP ===== */
+    function renderRecords() {
+      updateBudgetStatus();
       
-      if (!lineMachines[line]) lineMachines[line] = [];
-
-      if (lineMachines[line].includes(val)) {
-        alert("Tên máy này đã có trong Line!");
+      const recentListEl = document.getElementById('recentExpenseList');
+      
+      if (!expenses.length) {
+        recentListEl.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">Chưa có khoản chi nào. Bấm nút + để thêm mới.</p>';
         return;
       }
 
-      lineMachines[line].push(val);
-      input.value = '';
-      saveData();
-      renderLineMachinesSetting();
+      const sortedExpenses = [...expenses].sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+
+      recentListEl.innerHTML = sortedExpenses.map(item => {
+        const dtInfo = formatDisplayDateTime(item.datetime);
+        const subClass = dtInfo.isToday ? 'sub-today' : 'sub-old';
+
+        return `
+          <div class="expense-item">
+            <div class="expense-info">
+              <div class="title">${item.category}</div>
+              ${item.note ? `<div class="note">${item.note}</div>` : ''}
+              <div class="${subClass}">${dtInfo.text}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="expense-amount">-${formatNum(item.amount)} đ</div>
+              <button class="more-btn" onclick="toggleDropdown(event, ${item.id})">⋮</button>
+              <div class="dropdown-menu" id="dropdown-${item.id}">
+                <button class="dropdown-item" onclick="openModal(${item.id})">✏️ Sửa</button>
+                <button class="dropdown-item danger" onclick="deleteExpense(${item.id})">🗑️ Xóa</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    function editMachineInLine(line, index) {
-      const oldName = lineMachines[line][index];
-      const newName = prompt(`Nhập tên mới cho máy "${oldName}":`, oldName);
+    /* ===== TAB 2: RENDER BÁO CÁO ===== */
+    function renderReport() {
+      const now = new Date();
 
-      if (newName && newName.trim() !== "" && newName !== oldName) {
-        const trimmed = newName.trim();
-        if (lineMachines[line].includes(trimmed)) {
-          alert("Tên máy này đã bị trùng trong Line!");
-          return;
-        }
+      /* --- 1. BÁO CÁO TUẦN NÀY --- */
+      const startOfWeek = new Date(now);
+      const day = now.getDay() || 7; 
+      startOfWeek.setDate(now.getDate() - day + 1);
+      startOfWeek.setHours(0,0,0,0);
 
-        lineMachines[line][index] = trimmed;
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23,59,59,999);
 
-        autoData.forEach(d => {
-          if (d.line === line && d.may === oldName) {
-            d.may = trimmed;
-          }
-        });
+      document.getElementById('labelWeekRange').innerText = 
+        `(${startOfWeek.getDate()}/${startOfWeek.getMonth()+1} -> ${endOfWeek.getDate()}/${endOfWeek.getMonth()+1})`;
 
-        saveData();
-        renderLineMachinesSetting();
-      }
-    }
-
-    function deleteMachineInLine(line, index) {
-      const mName = lineMachines[line][index];
-      if (confirm(`Xóa máy "${mName}" khỏi Line ${line}?`)) {
-        lineMachines[line].splice(index, 1);
-        saveData();
-        renderLineMachinesSetting();
-      }
-    }
-
-    function renderSummary() {
-      const summaryContainer = document.getElementById('lineSummaryContainer');
-      let html = '';
-
-      if (lines.length === 0) {
-        summaryContainer.innerHTML = '<div style="color: var(--muted); font-style: italic;">Chưa có Line nào.</div>';
-        return;
-      }
-
-      lines.forEach(line => {
-        const autoModels = autoData.filter(d => d.line === line && Object.keys(d).some(k => !['id','line','model','may'].includes(k) && d[k] !== ''));
-
-        const recordedModels = [...new Set(autoModels.map(item => item.model))];
-
-        html += `<div class="stat-line-block">`;
-        html += `<div class="stat-line-title">📍 Line: ${line}</div>`;
-
-        if (recordedModels.length === 0) {
-          html += `<div style="color: var(--muted); font-style: italic;">Chưa có dữ liệu thông số nào được ghi.</div>`;
-        } else {
-          recordedModels.forEach(modelName => {
-            html += `<span class="stat-model-tag">📱 ${modelName} <span class="badge-count">Tự động</span></span>`;
-          });
-        }
-        html += `</div>`;
+      const weekExpenses = expenses.filter(e => {
+        const d = new Date(e.datetime);
+        return d >= startOfWeek && d <= endOfWeek;
       });
 
-      summaryContainer.innerHTML = html;
+      renderPieSection(weekExpenses, 'totalWeek', 'breakdownWeek', 'pieChartWeek');
+
+      /* --- 2. BÁO CÁO THÁNG NÀY --- */
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      const startOfMonth = new Date(currentYear, currentMonth, 1);
+      const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+
+      document.getElementById('labelMonthRange').innerText = 
+        `(${startOfMonth.getDate()}/${startOfMonth.getMonth()+1} -> ${endOfMonth.getDate()}/${endOfMonth.getMonth()+1})`;
+
+      const monthExpenses = expenses.filter(e => {
+        const d = new Date(e.datetime);
+        return d >= startOfMonth && d <= endOfMonth;
+      });
+
+      renderPieSection(monthExpenses, 'totalMonth', 'breakdownMonth', 'pieChartMonth');
+
+      /* --- 3. BÁO CÁO THÁNG TRƯỚC --- */
+      const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1);
+      const endOfLastMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+      document.getElementById('labelLastMonthRange').innerText = 
+        `(${startOfLastMonth.getDate()}/${startOfLastMonth.getMonth()+1} -> ${endOfLastMonth.getDate()}/${endOfLastMonth.getMonth()+1})`;
+
+      const lastMonthExpenses = expenses.filter(e => {
+        const d = new Date(e.datetime);
+        return d >= startOfLastMonth && d <= endOfLastMonth;
+      });
+
+      renderPieSection(lastMonthExpenses, 'totalLastMonth', 'breakdownLastMonth', 'pieChartLastMonth');
+
+      /* --- 4. BÁO CÁO NĂM NAY --- */
+      const monthlyTotals = Array(12).fill(0);
+
+      expenses.forEach(e => {
+        const d = new Date(e.datetime);
+        if (d.getFullYear() === currentYear) {
+          monthlyTotals[d.getMonth()] += e.amount;
+        }
+      });
+
+      const totalYear = monthlyTotals.reduce((a, b) => a + b, 0);
+      document.getElementById('totalYear').innerText = `${formatNum(totalYear)} VND`;
+
+      const yearLabels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+      drawBarChart(
+  'barChartYear',
+  yearLabels,
+  monthlyTotals,
+  42
+);
+
+renderSelectedYearMonthReport();
+
+      /* --- 5. BÁO CÁO 5 NĂM GẦN NHẤT --- */
+      const fiveYearLabels = [];
+      const fiveYearTotals = [];
+      
+      for (let i = 4; i >= 0; i--) {
+        fiveYearLabels.push((currentYear - i).toString());
+        fiveYearTotals.push(0);
+      }
+
+      document.getElementById('label5YearsRange').innerText = `(${fiveYearLabels[0]} - ${fiveYearLabels[4]})`;
+
+      expenses.forEach(e => {
+        const d = new Date(e.datetime);
+        const yr = d.getFullYear();
+        const idx = fiveYearLabels.indexOf(yr.toString());
+        if (idx !== -1) {
+          fiveYearTotals[idx] += e.amount;
+        }
+      });
+
+      const total5Years = fiveYearTotals.reduce((a, b) => a + b, 0);
+      document.getElementById('total5Years').innerText = `${formatNum(total5Years)} VND`;
+
+      drawBarChart(
+  'barChart5Years',
+  fiveYearLabels,
+  fiveYearTotals,
+  60
+);
+
+renderSelectedFiveYearReport();
     }
 
-    function addNewLine() {
-      const val = document.getElementById('newLineInput').value.trim();
-      if (!val) return;
-      if (lines.includes(val)) { alert("Line này đã tồn tại!"); return; }
+    function renderPieSection(expenseList, totalElId, breakdownElId, chartCanvasId) {
+      const total = expenseList.reduce((sum, e) => sum + e.amount, 0);
+      document.getElementById(totalElId).innerText = `${formatNum(total)} VND`;
 
-      lines.push(val);
-      lineMachines[val] = [];
-      document.getElementById('newLineInput').value = '';
+      const catTotals = {};
+      categoriesList.forEach(c => catTotals[c.name] = 0);
+      
+      expenseList.forEach(e => {
+        if (catTotals[e.category] !== undefined) catTotals[e.category] += e.amount;
+        else {
+          const fallbackKey = categoriesList.find(c => c.name.includes("Chưa phân loại "))?.name || "🔖 Chưa phân loại";
+          if (!catTotals[fallbackKey]) catTotals[fallbackKey] = 0;
+          catTotals[fallbackKey] += e.amount;
+        }
+      });
+
+      const breakdownList = categoriesList.map(c => ({
+        cat: c.name,
+        color: c.color,
+        amt: catTotals[c.name] || 0,
+        pct: total > 0 ? (((catTotals[c.name] || 0) / total) * 100) : 0
+      }))
+      .filter(item => item.amt > 0)
+      .sort((a, b) => b.pct - a.pct);
+
+      document.getElementById(breakdownElId).innerHTML = breakdownList.map(item => `
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+          <span><span style="color:${item.color}; font-weight:bold;">●</span> ${item.cat} (${item.pct.toFixed(1)}%)</span>
+          <b>${formatNum(item.amt)} VND</b>
+        </div>
+      `).join('');
+
+      const pieData = categoriesList.map(c => catTotals[c.name] || 0);
+      const pieColors = categoriesList.map(c => c.color);
+      drawPieChart(chartCanvasId, pieData, pieColors, total);
+    }
+
+function renderSelectedYearMonthReport() {
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  const monthExpenses = expenses.filter(e => {
+
+    const d = new Date(e.datetime);
+
+    return (
+      d.getFullYear() === currentYear &&
+      d.getMonth() === selectedYearMonth
+    );
+
+  });
+
+  document.getElementById(
+    'selectedYearMonthLabel'
+  ).innerText = `Tháng ${selectedYearMonth + 1}`;
+
+  renderPieSection(
+    monthExpenses,
+    'selectedYearMonthTotal',
+    'selectedYearMonthBreakdown',
+    'selectedYearMonthPie'
+  );
+}
+
+function renderSelectedFiveYearReport() {
+
+  const yearExpenses = expenses.filter(e => {
+
+    const d = new Date(e.datetime);
+
+    return d.getFullYear() === selectedFiveYear;
+
+  });
+
+  document.getElementById(
+    'selectedFiveYearLabel'
+  ).innerText = selectedFiveYear;
+
+  renderPieSection(
+    yearExpenses,
+    'selectedFiveYearTotal',
+    'selectedFiveYearBreakdown',
+    'selectedFiveYearPie'
+  );
+}
+
+
+    function drawPieChart(canvasId, dataArr, colorsArr, total) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+
+      const w = canvas.parentElement.clientWidth || 300;
+      const h = 220;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.height = h + "px";
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) / 2 - 16;
+
+      if (total <= 0) {
+        ctx.fillStyle = '#8e8e93';
+        ctx.font = '14px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Chưa có chi tiêu trong khoảng thời gian này', cx, cy);
+        return;
+      }
+
+      let startAngle = -Math.PI / 2;
+      dataArr.forEach((val, i) => {
+        if (val <= 0) return;
+        const sliceAngle = (val / total) * 2 * Math.PI;
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = colorsArr[i] || '#8e8e93';
+        ctx.fill();
+
+        startAngle = endAngle;
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+    }
+
+    function drawBarChart(canvasId, labels, values, columnStepWidth = 40) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+
+      const parentWidth = canvas.parentElement.clientWidth || 300;
+      const minChartWidth = labels.length * columnStepWidth;
+      const w = Math.max(parentWidth, minChartWidth);
+      const h = 220;
+
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const maxVal = Math.max(...values, 1);
+      const paddingLeft = 15;
+      const paddingRight = 15;
+      const paddingBottom = 30;
+      const chartWidth = w - paddingLeft - paddingRight;
+      const chartHeight = h - paddingBottom - 25;
+
+      const barWidth = Math.min(28, (chartWidth / labels.length) * 0.55);
+
+      labels.forEach((lbl, i) => {
+        const val = values[i];
+        const barH = (val / maxVal) * chartHeight;
+        const slotWidth = chartWidth / labels.length;
+        const x = paddingLeft + (i * slotWidth) + (slotWidth - barWidth) / 2;
+        const y = h - paddingBottom - barH;
+
+        let selected = false;
+
+if (
+  canvasId === "barChartYear" &&
+  i === selectedYearMonth
+) {
+  selected = true;
+}
+
+if (
+  canvasId === "barChart5Years" &&
+  Number(labels[i]) === selectedFiveYear
+) {
+  selected = true;
+}
+
+ctx.fillStyle =
+  selected
+    ? '#ff9500'
+    : (val > 0 ? '#007aff' : '#e5e5ea');
+        const renderH = val > 0 ? Math.max(barH, 4) : 2;
+        const renderY = val > 0 ? y : h - paddingBottom - 2;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(x, renderY, barWidth, renderH, [4, 4, 0, 0]);
+        } else {
+          ctx.rect(x, renderY, barWidth, renderH);
+        }
+        ctx.fill();
+
+        ctx.fillStyle = '#1c1c1e';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(lbl, x + barWidth / 2, h - 8);
+
+        if (val > 0) {
+          ctx.fillStyle = '#8e8e93';
+          ctx.font = '9px -apple-system, sans-serif';
+          let displayVal = val >= 1e6 ? (val/1e6).toFixed(1) + 'M' : (val/1e3).toFixed(0) + 'k';
+          ctx.fillText(displayVal, x + barWidth / 2, renderY - 5);
+        }
+      });
+
+if (canvasId === 'barChartYear') {
+
+  canvas.onclick = function(event) {
+
+    const rect = canvas.getBoundingClientRect();
+
+    const x =
+      event.clientX - rect.left;
+
+    const chartWidth =
+      w - paddingLeft - paddingRight;
+
+    const slotWidth =
+      chartWidth / labels.length;
+
+    const monthIndex = Math.floor(
+      (x - paddingLeft) / slotWidth
+    );
+
+    if (
+      monthIndex >= 0 &&
+      monthIndex < 12
+    ) {
+
+      selectedYearMonth = monthIndex;
+
+      renderReport();
+    }
+  };
+}
+if (canvasId === 'barChart5Years') {
+
+  canvas.onclick = function(event) {
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const x =
+      event.clientX - rect.left;
+
+    const chartWidth =
+      w - paddingLeft - paddingRight;
+
+    const slotWidth =
+      chartWidth / labels.length;
+
+    const yearIndex = Math.floor(
+      (x - paddingLeft) / slotWidth
+    );
+
+    if (
+      yearIndex >= 0 &&
+      yearIndex < labels.length
+    ) {
+
+      selectedFiveYear =
+        Number(labels[yearIndex]);
+
+      renderReport();
+    }
+  };
+}
+
+
+
+    }
+
+    /* ===== TAB 3: RENDER & XỬ LÝ CÀI ĐẶT ===== */
+    function renderSettings() {
+      const listEl = document.getElementById('settingsCategoryList');
+      listEl.innerHTML = categoriesList.map((c, idx) => `
+        <div class="category-list-item">
+          <div class="category-tag">
+            <span class="color-dot" style="background-color: ${c.color}"></span>
+            <span>${c.name}</span>
+          </div>
+          ${!c.isDefault ? `<button class="btn-delete-cat" onclick="deleteCategory(${idx})">🗑️ Xóa</button>` : ''}
+        </div>
+      `).join('');
+
+      document.getElementById('monthlyBudgetInput').value = formatNum(monthlyBudget);
+    }
+
+    function openAddCategoryModal() {
+      document.getElementById('newCatName').value = "";
+      document.getElementById('newCatColor').value = "#007aff";
+      document.getElementById('addCategoryModal').classList.add('active');
+    }
+
+    function closeAddCategoryModal() {
+      document.getElementById('addCategoryModal').classList.remove('active');
+    }
+
+    function closeAddCatModalOnOverlay(e) {
+      if (e.target.classList.contains('modal-overlay')) closeAddCategoryModal();
+    }
+
+    function saveNewCategory() {
+      const name = document.getElementById('newCatName').value.trim();
+      const color = document.getElementById('newCatColor').value;
+
+      if (!name) {
+        alert("Vui lòng nhập tên danh mục!");
+        return;
+      }
+
+      if (categoriesList.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert("Danh mục này đã tồn tại!");
+        return;
+      }
+
+      categoriesList.push({ name, color, isDefault: false });
       saveData();
-      updateSelectOptions();
+      closeAddCategoryModal();
       renderSettings();
+      updateCategoryDropdown();
     }
 
-    function editLine(index) {
-      const oldName = lines[index];
-      const newName = prompt(`Nhập tên mới cho Line "${oldName}":`, oldName);
-      if (newName && newName.trim() !== "" && newName !== oldName) {
-        const trimmed = newName.trim();
-        if (lines.includes(trimmed)) { alert("Tên Line này đã trùng với Line khác!"); return; }
-
-        lines[index] = trimmed;
-        lineMachines[trimmed] = lineMachines[oldName] || [];
-        delete lineMachines[oldName];
-
-        autoData.forEach(d => { if (d.line === oldName) d.line = trimmed; });
-
+    function deleteCategory(index) {
+      const catName = categoriesList[index].name;
+      if (confirm(`Bạn chắc chắn muốn xóa danh mục "${catName}"?`)) {
+        categoriesList.splice(index, 1);
         saveData();
-        updateSelectOptions();
         renderSettings();
+        updateCategoryDropdown();
       }
     }
 
-    function deleteLine(index) {
-      const lName = lines[index];
-      if (confirm(`Xóa Line "${lName}"?`)) {
-        lines.splice(index, 1);
-        delete lineMachines[lName];
-        saveData();
-        updateSelectOptions();
-        renderSettings();
+    function saveMonthlyBudget() {
+      const val = parseNum(document.getElementById('monthlyBudgetInput').value);
+      if (val <= 0) {
+        alert("Vui lòng nhập hạn mức hợp lệ!");
+        return;
       }
-    }
-
-    function addNewModel() {
-      const val = document.getElementById('newModelInput').value.trim();
-      if (!val) return;
-      if (models.includes(val)) { alert("Model này đã tồn tại!"); return; }
-
-      models.push(val);
-      document.getElementById('newModelInput').value = '';
+      monthlyBudget = val;
       saveData();
-      updateSelectOptions();
-      renderSettings();
+      alert("Đã cập nhật hạn mức chi tiêu tháng!");
+      updateBudgetStatus();
     }
 
-    function editModel(index) {
-      const oldName = models[index];
-      const newName = prompt(`Nhập tên mới cho Model "${oldName}":`, oldName);
-      if (newName && newName.trim() !== "" && newName !== oldName) {
-        const trimmed = newName.trim();
-        if (models.includes(trimmed)) { alert("Tên Model này đã trùng với Model khác!"); return; }
-
-        models[index] = trimmed;
-        autoData.forEach(d => { if (d.model === oldName) d.model = trimmed; });
-
-        saveData();
-        updateSelectOptions();
-        renderSettings();
-      }
-    }
-
-    function deleteModel(index) {
-      if (confirm(`Xóa Model "${models[index]}"?`)) {
-        models.splice(index, 1);
-        saveData();
-        updateSelectOptions();
-        renderSettings();
-      }
-    }
-
-    /* ===== XUẤT / NHẬP DỮ LIỆU ===== */
+    /* ===== BACKUP & RESTORE ===== */
     function exportData() {
-      const fullData = { lines, models, lineMachines, autoData, screwData };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `Data_ThongSo_SX_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+      const backupObj = {
+        expenses,
+        categories: categoriesList,
+        monthlyBudget
+      };
+      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ChiTieu_Backup.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
-    function importData(event) {
-      const file = event.target.files[0];
+    function importData(e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function(evt) {
         try {
-          const parsed = JSON.parse(e.target.result);
-          if (parsed.lines) lines = parsed.lines;
-          if (parsed.models) models = parsed.models;
-          if (parsed.lineMachines) lineMachines = parsed.lineMachines;
-          if (parsed.autoData) autoData = parsed.autoData;
-          if (parsed.screwData) screwData = parsed.screwData;
-
-          saveData();
-          updateSelectOptions();
-          alert("Phục hồi dữ liệu thành công!");
-          location.reload();
+          const data = JSON.parse(evt.target.result);
+          if (confirm("Dữ liệu hiện tại sẽ bị ghi đè. Bạn chắc chắn chứ?")) {
+            if (Array.isArray(data)) {
+              expenses = data;
+            } else {
+              expenses = data.expenses || [];
+              categoriesList = data.categories || DEFAULT_CATEGORIES;
+              monthlyBudget = data.monthlyBudget || 14000000;
+            }
+            saveData();
+            renderRecords();
+            renderReport();
+            renderSettings();
+            alert("Phục hồi dữ liệu thành công!");
+          }
         } catch (err) {
-          alert("Lỗi file không hợp lệ!");
+          alert("File không hợp lệ!");
         }
       };
       reader.readAsText(file);
     }
 
+    /* ===== KHỞI TẠO ===== */
     window.onload = function() {
       loadData();
-      renderAutoMatrix();
-      renderOldCompareMatrix();
+selectedYearMonth = new Date().getMonth();
+selectedFiveYear = new Date().getFullYear();
+      renderRecords();
     };
   </script>
 </body>
