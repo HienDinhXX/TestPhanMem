@@ -233,27 +233,79 @@
       color: #fff;
     }
 
-    /* FAB */
+    /* FAB - PHONG CÁCH iOS 26 */
 
     .fab {
       position: fixed;
-      right: 20px;
-      bottom: 20px;
-      width: 90px;
-      height: 90px;
-      border-radius: 56px;
-      background: var(--primary);
+      right: 22px;
+      bottom: 22px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, rgba(255,255,255,.38) 0%, rgba(255,255,255,.10) 32%, rgba(255,45,105,.96) 100%), linear-gradient(145deg, #ff6b9f, #ff2d68);
       color: #fff;
-      font-size: 64px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      font-size: 38px;
+      font-weight: 300;
+      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 24px rgba(0,122,255,0.4);
+      padding: 0 0 4px 0;
+      border: 1px solid rgba(255,255,255,.62);
+      box-shadow: 0 14px 30px rgba(255,45,105,.28), 0 5px 12px rgba(0,0,0,.14), inset 0 1px 1px rgba(255,255,255,.60), inset 0 -2px 3px rgba(110,0,45,.16);
       cursor: pointer;
       z-index: 90;
       user-select: none;
-      line-height: 1;
-      padding-bottom: 6px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, filter .22s ease;
+    }
+
+    .fab::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      top: 6px;
+      height: 23px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,.46), rgba(255,255,255,0));
+      pointer-events: none;
+      opacity: .8;
+    }
+
+    .fab::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,45,105,.12);
+      box-shadow: 0 0 22px rgba(255,45,105,.12);
+      pointer-events: none;
+    }
+
+    .fab:hover {
+      transform: translateY(-3px) scale(1.045);
+      filter: brightness(1.05);
+      box-shadow: 0 17px 34px rgba(255,45,105,.34), 0 7px 14px rgba(0,0,0,.14), inset 0 1px 1px rgba(255,255,255,.65), inset 0 -2px 3px rgba(110,0,45,.16);
+    }
+
+    .fab:active {
+      transform: scale(.87);
+      box-shadow: 0 7px 15px rgba(255,45,105,.22), 0 2px 6px rgba(0,0,0,.10), inset 0 2px 4px rgba(100,0,40,.12);
+      filter: brightness(.98);
+    }
+
+    .fab:focus { outline: none; }
+
+    @media (hover: none) {
+      .fab:hover { transform: none; filter: none; }
+      .fab:active { transform: scale(.87); }
+    }
+
+    @media (max-width: 480px) {
+      .fab { right: 18px; bottom: 18px; width: 60px; height: 60px; font-size: 36px; }
     }
 
     /* MODAL */
@@ -471,6 +523,115 @@
       padding: 4px 8px;
     }
 
+    /* ===== PASSWORD ===== */
+    .password-form-grid {
+      display: grid;
+      gap: 0;
+    }
+
+    .password-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #efeff4;
+    }
+
+    .password-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .password-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .password-app {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 3px;
+      word-break: break-word;
+    }
+
+    .password-account,
+    .password-note,
+    .password-value {
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-word;
+      margin-top: 2px;
+    }
+
+    .password-value {
+      color: var(--text);
+      letter-spacing: 1px;
+    }
+
+    .password-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .password-action-btn {
+      width: auto;
+      min-height: 30px;
+      height: 30px;
+      padding: 4px 7px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #e5e5ea;
+      color: var(--text);
+    }
+
+    .password-action-btn.delete {
+      background: #ffe5e3;
+      color: var(--danger);
+    }
+
+
+    .password-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-input-wrap input {
+      width: 100%;
+      padding-right: 42px;
+    }
+
+    .password-input-toggle {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .password-input-toggle:hover {
+      background: #e5e5ea;
+      color: var(--text);
+    }
+
+    .password-empty {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 14px 0;
+    }
+
     /* ===== BÁO CÁO THEO THỜI GIAN ===== */
 
     .custom-report-selectors {
@@ -577,6 +738,13 @@
     <div class="tab-item" onclick="switchTab('report', this)">
       <span class="icon">📊</span>
       <span>Báo cáo</span>
+    </div>
+
+    <div class="tab-divider"></div>
+
+    <div class="tab-item" onclick="switchTab('password', this)">
+      <span class="icon">🔐</span>
+      <span>Password</span>
     </div>
 
     <div class="tab-divider"></div>
@@ -875,7 +1043,92 @@
 
 
     <!-- =====================================================
-         TAB 3: CÀI ĐẶT
+         TAB 3: PASSWORD
+         ===================================================== -->
+
+    <div
+      id="tab-password"
+      class="tab-content"
+      style="padding-top:12px;"
+    >
+
+      <div class="card">
+
+        <div class="password-form-grid">
+
+          <label for="passwordAppInput">Tên ứng dụng</label>
+          <input
+            type="text"
+            id="passwordAppInput"
+            placeholder="Nhập tên ứng dụng, trang web..."
+          >
+
+          <label for="passwordAccountInput">Tài khoản</label>
+          <input
+            type="text"
+            id="passwordAccountInput"
+            placeholder="Tên tài khoản..."
+          >
+
+          <label for="passwordValueInput">Mật khẩu</label>
+          <div class="password-input-wrap">
+            <input
+              type="password"
+              id="passwordValueInput"
+              placeholder="Nhập mật khẩu..."
+              autocomplete="new-password"
+            >
+            <button
+              type="button"
+              class="password-input-toggle"
+              onclick="togglePasswordInputVisibility()"
+              aria-label="Hiện mật khẩu"
+              title="Hiện mật khẩu"
+            >👁</button>
+          </div>
+
+          <label for="passwordNoteInput">Ghi chú</label>
+          <input
+            type="text"
+            id="passwordNoteInput"
+            placeholder="Thêm ghi chú..."
+          >
+
+          <button
+            id="passwordSaveButton"
+            class="btn-primary"
+            type="button"
+            onclick="savePasswordItem()"
+          >
+            + Thêm
+          </button>
+
+          <button
+            id="passwordCancelEditButton"
+            type="button"
+            onclick="cancelPasswordEdit()"
+            style="display:none;background:#e5e5ea;color:#333;margin-top:8px;"
+          >
+            Hủy sửa
+s          </button>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>📋 Danh sách Password</h2>
+
+        <div id="passwordList"></div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 4: CÀI ĐẶT
          ===================================================== -->
 
     <div
@@ -1214,6 +1467,10 @@
 
     let expenses = [];
 
+    let passwordItems = [];
+
+    let editingPasswordId = null;
+
     let monthlyBudget = 14000000;
 
 
@@ -1399,6 +1656,11 @@
         monthlyBudget.toString()
       );
 
+      localStorage.setItem(
+        "password_data_v1",
+        JSON.stringify(passwordItems)
+      );
+
     }
 
 
@@ -1445,6 +1707,26 @@
             "monthly_budget_v5"
           )
         ) || 14000000;
+
+
+      try {
+
+        passwordItems =
+          JSON.parse(
+            localStorage.getItem(
+              "password_data_v1"
+            )
+          ) || [];
+
+        if (!Array.isArray(passwordItems)) {
+          passwordItems = [];
+        }
+
+      } catch {
+
+        passwordItems = [];
+
+      }
 
 
       categoriesList =
@@ -1541,6 +1823,12 @@
         renderReport();
 
         renderCustomReport();
+
+      }
+
+      else if (tabName === 'password') {
+
+        renderPasswordList();
 
       }
 
@@ -3601,6 +3889,351 @@
 
 
     /* =====================================================
+       PASSWORD
+       ===================================================== */
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+
+    function clearPasswordForm() {
+
+      document.getElementById('passwordAppInput').value = "";
+      document.getElementById('passwordAccountInput').value = "";
+      document.getElementById('passwordValueInput').value = "";
+      document.getElementById('passwordNoteInput').value = "";
+
+      editingPasswordId = null;
+
+      document.getElementById('passwordSaveButton').innerText = "+ Thêm";
+
+      document.getElementById('passwordCancelEditButton').style.display = "none";
+
+    }
+
+
+    function savePasswordItem() {
+
+      const app =
+        document.getElementById('passwordAppInput').value.trim();
+
+      const account =
+        document.getElementById('passwordAccountInput').value.trim();
+
+      const password =
+        document.getElementById('passwordValueInput').value;
+
+      const note =
+        document.getElementById('passwordNoteInput').value.trim();
+
+
+      if (!app) {
+
+        alert("Vui lòng nhập tên ứng dụng!");
+
+        document.getElementById('passwordAppInput').focus();
+
+        return;
+
+      }
+
+
+      if (!account) {
+
+        alert("Vui lòng nhập tài khoản!");
+
+        document.getElementById('passwordAccountInput').focus();
+
+        return;
+
+      }
+
+
+      if (!password) {
+
+        alert("Vui lòng nhập mật khẩu!");
+
+        document.getElementById('passwordValueInput').focus();
+
+        return;
+
+      }
+
+
+      if (editingPasswordId !== null) {
+
+        const idx =
+          passwordItems.findIndex(
+            item => item.id === editingPasswordId
+          );
+
+        if (idx !== -1) {
+
+          passwordItems[idx] = {
+            ...passwordItems[idx],
+            app,
+            account,
+            password,
+            note
+          };
+
+        }
+
+      }
+
+      else {
+
+        passwordItems.unshift({
+
+          id: Date.now(),
+
+          app,
+
+          account,
+
+          password,
+
+          note
+
+        });
+
+      }
+
+
+      saveData();
+
+      clearPasswordForm();
+
+      renderPasswordList();
+
+    }
+
+
+    function renderPasswordList() {
+
+      const listEl =
+        document.getElementById('passwordList');
+
+      if (!listEl) return;
+
+
+      if (!passwordItems.length) {
+
+        listEl.innerHTML = `
+          <div class="password-empty">
+            Chưa có thông tin Password nào.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      listEl.innerHTML =
+        passwordItems.map(item => `
+
+          <div class="password-list-item">
+
+            <div class="password-info">
+
+              <div class="password-app">
+                ${escapeHTML(item.app)}
+              </div>
+
+              <div class="password-account">
+                👤 ${escapeHTML(item.account)}
+              </div>
+
+              <div class="password-value">
+                🔑 <span id="password-display-${item.id}">••••••••</span>
+              </div>
+
+              ${
+                item.note
+                  ? `
+                    <div class="password-note">
+                      📝 ${escapeHTML(item.note)}
+                    </div>
+                  `
+                  : ''
+              }
+
+            </div>
+
+            <div class="password-actions">
+
+              <button
+                type="button"
+                class="password-action-btn"
+                onclick="togglePasswordVisibility(${item.id}, this)"
+              >
+                👁 Hiện
+              </button>
+
+              <button
+                type="button"
+                class="password-action-btn"
+                onclick="editPasswordItem(${item.id})"
+              >
+                Sửa
+              </button>
+
+              <button
+                type="button"
+                class="password-action-btn delete"
+                onclick="deletePasswordItem(${item.id})"
+              >
+                Xóa
+              </button>
+
+            </div>
+
+          </div>
+
+        `).join('');
+
+    }
+
+
+    function togglePasswordVisibility(id, button) {
+
+      const item =
+        passwordItems.find(
+          entry => entry.id === id
+        );
+
+      const display =
+        document.getElementById(`password-display-${id}`);
+
+      if (!item || !display) return;
+
+      const isVisible = display.dataset.visible === 'true';
+
+      if (isVisible) {
+        display.textContent = '••••••••';
+        display.dataset.visible = 'false';
+        button.innerHTML = '👁 Hiện';
+      } else {
+        display.textContent = item.password || '';
+        display.dataset.visible = 'true';
+        button.innerHTML = '🙈 Ẩn';
+      }
+    }
+
+
+    function togglePasswordInputVisibility() {
+
+      const input =
+        document.getElementById('passwordValueInput');
+
+      const button =
+        document.querySelector('.password-input-toggle');
+
+      if (!input || !button) return;
+
+      const isVisible = input.type === 'text';
+
+      input.type = isVisible ? 'password' : 'text';
+      button.innerHTML = isVisible ? '👁' : '🙈';
+      button.title = isVisible ? 'Hiện mật khẩu' : 'Ẩn mật khẩu';
+      button.setAttribute(
+        'aria-label',
+        isVisible ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'
+      );
+    }
+
+
+    function editPasswordItem(id) {
+
+      const item =
+        passwordItems.find(
+          entry => entry.id === id
+        );
+
+      if (!item) return;
+
+
+      editingPasswordId = id;
+
+      document.getElementById('passwordAppInput').value =
+        item.app || "";
+
+      document.getElementById('passwordAccountInput').value =
+        item.account || "";
+
+      document.getElementById('passwordValueInput').value =
+        item.password || "";
+
+      document.getElementById('passwordNoteInput').value =
+        item.note || "";
+
+
+      document.getElementById('passwordSaveButton').innerText =
+        "Lưu thay đổi";
+
+      document.getElementById('passwordCancelEditButton').style.display =
+        "block";
+
+
+      document.getElementById('passwordAppInput').focus();
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+    }
+
+
+    function cancelPasswordEdit() {
+
+      clearPasswordForm();
+
+    }
+
+
+    function deletePasswordItem(id) {
+
+      const item =
+        passwordItems.find(
+          entry => entry.id === id
+        );
+
+      if (!item) return;
+
+
+      if (
+        confirm(
+          `Xóa Password của "${item.app}"?`
+        )
+      ) {
+
+        passwordItems =
+          passwordItems.filter(
+            entry => entry.id !== id
+          );
+
+        if (editingPasswordId === id) {
+          clearPasswordForm();
+        }
+
+        saveData();
+
+        renderPasswordList();
+
+      }
+
+    }
+
+
+    /* =====================================================
        CÀI ĐẶT
        ===================================================== */
 
@@ -3861,7 +4494,10 @@
         categories:
           categoriesList,
 
-        monthlyBudget
+        monthlyBudget,
+
+        passwords:
+          passwordItems
 
       };
 
@@ -3949,6 +4585,8 @@
                 expenses =
                   data;
 
+                passwordItems = [];
+
               }
 
               else {
@@ -3965,6 +4603,11 @@
                   data.monthlyBudget ||
                   14000000;
 
+                passwordItems =
+                  Array.isArray(data.passwords)
+                    ? data.passwords
+                    : [];
+
               }
 
 
@@ -3975,6 +4618,8 @@
               renderRecords();
 
               renderReport();
+
+              renderPasswordList();
 
               renderSettings();
 
@@ -4018,6 +4663,8 @@
 
         renderRecords();
 
+        renderPasswordList();
+
         initCustomReportYearSelect();
 
       };
@@ -4025,4 +4672,65 @@
   </script>
 
 </body>
-</html>
+</html/* FAB - PHONG CÁCH iOS */
+
+    .fab {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #ff2d55;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      font-size: 38px;
+      font-weight: 300;
+      line-height: 1;
+      padding: 0 0 4px 0;
+      border: 1px solid rgba(255,255,255,0.45);
+      box-shadow: 0 8px 20px rgba(255,45,85,0.28), 0 3px 8px rgba(0,0,0,0.14);
+      cursor: pointer;
+      z-index: 90;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: transform 0.16s cubic-bezier(.25,.8,.25,1), box-shadow 0.16s ease, filter 0.16s ease;
+    }
+
+    .fab::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,45,85,0.10);
+      pointer-events: none;
+    }
+
+    .fab:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+      box-shadow: 0 11px 25px rgba(255,45,85,0.34), 0 4px 10px rgba(0,0,0,0.14);
+    }
+
+    .fab:active {
+      transform: scale(0.88);
+      box-shadow: 0 4px 10px rgba(255,45,85,0.22), 0 2px 5px rgba(0,0,0,0.10);
+      filter: brightness(0.96);
+    }
+
+    .fab:focus { outline: none; }
+
+    @media (hover: none) {
+      .fab:hover { transform: none; filter: none; }
+      .fab:active { transform: scale(0.88); }
+    }
+
+    @media (max-width: 480px) {
+      .fab { right: 18px; bottom: 18px; width: 60px; height: 60px; font-size: 37px; }
+    }
+
+    >
