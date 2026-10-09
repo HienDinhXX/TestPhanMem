@@ -27,14 +27,14 @@
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         button, label.btn {
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
@@ -51,16 +51,23 @@
             margin: 15px 0;
             text-align: left;
         }
-        .controls label {
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            font-size: 14px;
+            color: #333;
         }
-        select {
+        input[type="text"], input[type="time"], input[type="date"], select {
             width: 100%;
-            padding: 8px;
-            border-radius: 4px;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 14px;
         }
         .canvas-container {
             margin-top: 15px;
@@ -83,22 +90,14 @@
         .download-btn:hover {
             background-color: #218838;
         }
-        .status-gps {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
-            font-style: italic;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Ứng dụng Đóng Dấu Ảnh</h2>
-    
-    <!-- Hiển thị tình trạng GPS để người dùng biết lý do lỗi -->
-    <div id="gpsStatus" class="status-gps">Đang yêu cầu quyền truy cập GPS...</div>
 
+    <!-- 1 nút tải ảnh từ máy, 1 nút chụp ảnh trực tiếp -->
     <div class="btn-group">
         <label for="uploadInput" class="btn">Tải ảnh từ máy</label>
         <input type="file" id="uploadInput" accept="image/*">
@@ -107,20 +106,40 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment">
     </div>
 
+    <!-- Khu vực nhập thông tin dấu và chọn kiểu thêm -->
     <div class="controls">
-        <label for="styleSelect">Chọn kiểu thêm dấu (Vị trí):</label>
-        <select id="styleSelect" onchange="redrawCanvas()">
-            <option value="bottom-left">Dưới cùng - Bên trái</option>
-            <option value="bottom-right">Dưới cùng - Bên phải</option>
-            <option value="top-left">Trên cùng - Bên trái</option>
-            <option value="top-right">Trên cùng - Bên phải</option>
-        </select>
+        <div class="form-group">
+            <label for="locationInput">Nhập vị trí đóng dấu:</label>
+            <input type="text" id="locationInput" placeholder="Ví dụ: Hà Nội, Việt Nam" value="Hà Nội">
+        </div>
+
+        <div class="form-group">
+            <label for="timeInput">Chỉnh thời gian:</label>
+            <input type="time" id="timeInput">
+        </div>
+
+        <div class="form-group">
+            <label for="dateInput">Chỉnh ngày tháng:</label>
+            <input type="date" id="dateInput">
+        </div>
+
+        <div class="form-group">
+            <label for="styleSelect">Chọn kiểu thêm dấu (Vị trí hiển thị):</label>
+            <select id="styleSelect">
+                <option value="bottom-left">Dưới cùng - Bên trái</option>
+                <option value="bottom-right">Dưới cùng - Bên phải</option>
+                <option value="top-left">Trên cùng - Bên trái</option>
+                <option value="top-right">Trên cùng - Bên phải</option>
+            </select>
+        </div>
     </div>
 
+    <!-- Ảnh hiển thị sau khi thêm/chụp -->
     <div class="canvas-container">
         <canvas id="photoCanvas"></canvas>
     </div>
 
+    <!-- 1 nút tải xuống -->
     <button id="downloadBtn" class="download-btn" onclick="downloadImage()">Tải xuống ảnh</button>
 </div>
 
@@ -129,68 +148,35 @@
     const cameraInput = document.getElementById('cameraInput');
     const canvas = document.getElementById('photoCanvas');
     const ctx = canvas.getContext('2d');
+    
+    // Các ô nhập liệu mới
+    const locationInput = document.getElementById('locationInput');
+    const timeInput = document.getElementById('timeInput');
+    const dateInput = document.getElementById('dateInput');
     const styleSelect = document.getElementById('styleSelect');
     const downloadBtn = document.getElementById('downloadBtn');
-    const gpsStatus = document.getElementById('gpsStatus');
 
     let currentImg = null;
-    let currentLocationText = 'Đang lấy vị trí...';
 
-    // Hàm lấy GPS chuẩn hóa có xử lý lỗi chi tiết
-    function getGPSLocation() {
-        if (!navigator.geolocation) {
-            currentLocationText = 'GPS không được hỗ trợ';
-            gpsStatus.innerText = 'Lỗi: Trình duyệt của bạn không hỗ trợ Geolocation API.';
-            return;
-        }
+    // Tự động điền Giờ hiện tại và Ngày hiện tại của máy làm mặc định khi mở app
+    const now = new Date();
+    
+    // Định dạng giờ hh:mm
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = `${hours}:${minutes}`;
 
-        // Kiểm tra nếu chạy file trực tiếp không qua HTTPS/Localhost
-        if (window.location.protocol === 'file:') {
-            currentLocationText = 'Lỗi bảo mật (Chạy file://)';
-            gpsStatus.innerHTML = '<span style="color: red;">Lỗi bảo mật: Bạn cần chạy ứng dụng qua mạng (HTTPS) hoặc localhost để sử dụng GPS.</span>';
-            return;
-        }
+    // Định dạng ngày yyyy-mm-dd cho ô input date
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    dateInput.value = `${year}-${month}-${day}`;
 
-        const options = {
-            enableHighAccuracy: true, // Yêu cầu độ chính xác cao
-            timeout: 8000,            // Chờ tối đa 8 giây
-            maximumAge: 0             // Không dùng vị trí cũ lưu trong bộ nhớ đệm
-        };
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude.toFixed(5);
-                const lon = position.coords.longitude.toFixed(5);
-                currentLocationText = `Lat: ${lat}, Lon: ${lon}`;
-                gpsStatus.innerHTML = `<span style="color: green;">✓ Đã kết nối GPS thành công! (${currentLocationText})</span>`;
-                if (currentImg) redrawCanvas();
-            },
-            (error) => {
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        currentLocationText = 'Từ chối quyền GPS';
-                        gpsStatus.innerText = 'Lỗi: Bạn đã từ chối cấp quyền truy cập vị trí. Hãy bật lại trong cài đặt trình duyệt.';
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        currentLocationText = 'Vị trí không có sẵn';
-                        gpsStatus.innerText = 'Lỗi: Thiết bị không thể xác định được vị trí (sóng yếu hoặc tắt định vị máy).';
-                        break;
-                    case error.TIMEOUT:
-                        currentLocationText = 'Hết thời gian chờ GPS';
-                        gpsStatus.innerText = 'Lỗi: Quá thời gian phản hồi từ GPS. Hãy thử lại.';
-                        break;
-                    default:
-                        currentLocationText = 'Lỗi GPS chưa xác định';
-                        gpsStatus.innerText = 'Không lấy được vị trí.';
-                }
-                if (currentImg) redrawCanvas();
-            },
-            options
-        );
-    }
-
-    // Gọi hàm lấy vị trí ngay khi ứng dụng mở ra
-    getGPSLocation();
+    // Lắng nghe sự kiện thay đổi của các ô nhập để cập nhật trực tiếp lên ảnh
+    locationInput.addEventListener('input', redrawCanvas);
+    timeInput.addEventListener('change', redrawCanvas);
+    dateInput.addEventListener('change', redrawCanvas);
+    styleSelect.addEventListener('change', redrawCanvas);
 
     function handleImageLoad(e) {
         const file = e.target.files[0];
@@ -218,14 +204,24 @@
     function redrawCanvas() {
         if (!currentImg) return;
 
+        // Vẽ lại ảnh gốc
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
 
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('vi-VN');
-        const dateStr = now.toLocaleDateString('vi-VN');
-        const fullText = `📍 ${timeStr} - ${dateStr} - ${currentLocationText}`;
+        // Định dạng lại ngày hiển thị sang kiểu Việt Nam (dd/mm/yyyy) từ ô chọn ngày
+        let dateStr = '';
+        if (dateInput.value) {
+            const [y, m, d] = dateInput.value.split('-');
+            dateStr = `${d}/${m}/${y}`;
+        }
 
+        const timeStr = timeInput.value || '--:--';
+        const locationStr = locationInput.value || 'Chưa nhập vị trí';
+
+        // Gộp chuỗi text có sẵn biểu tượng định vị 📍
+        const fullText = `📍 ${timeStr} - ${dateStr} - ${locationStr}`;
+
+        // Tự động điều chỉnh kích thước chữ dựa trên độ phân giải của bức ảnh
         const fontSize = Math.max(16, Math.floor(canvas.width / 35));
         ctx.font = `bold ${fontSize}px Arial`;
         const textMetrics = ctx.measureText(fullText);
@@ -238,6 +234,7 @@
         let x = padding;
         let y = canvas.height - padding - textHeight;
 
+        // Tính toán tọa độ dựa trên Kiểu chọn (Vị trí hiển thị)
         if (style === 'bottom-left') {
             x = padding;
             y = canvas.height - padding;
@@ -252,9 +249,11 @@
             y = textHeight + padding;
         }
 
+        // Vẽ nền đen mờ cho chữ nổi bật, dễ đọc trên mọi nền ảnh
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(x - padding/2, y - textHeight - padding/2, textWidth + padding, textHeight + padding);
 
+        // Vẽ chữ màu trắng
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(fullText, x, y);
     }
