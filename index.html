@@ -83,14 +83,22 @@
         .download-btn:hover {
             background-color: #218838;
         }
+        .status-gps {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Ứng dụng Đóng Dấu Ảnh</h2>
+    
+    <!-- Hiển thị tình trạng GPS để người dùng biết lý do lỗi -->
+    <div id="gpsStatus" class="status-gps">Đang yêu cầu quyền truy cập GPS...</div>
 
-    <!-- 1 nút tải ảnh từ máy, 1 nút chụp ảnh trực tiếp -->
     <div class="btn-group">
         <label for="uploadInput" class="btn">Tải ảnh từ máy</label>
         <input type="file" id="uploadInput" accept="image/*">
@@ -99,7 +107,6 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment">
     </div>
 
-    <!-- Chọn kiểu thêm (vị trí hiển thị watermark) -->
     <div class="controls">
         <label for="styleSelect">Chọn kiểu thêm dấu (Vị trí):</label>
         <select id="styleSelect" onchange="redrawCanvas()">
@@ -110,12 +117,10 @@
         </select>
     </div>
 
-    <!-- Canvas hiển thị ảnh đã thêm hoặc chụp -->
     <div class="canvas-container">
         <canvas id="photoCanvas"></canvas>
     </div>
 
-    <!-- 1 nút tải xuống -->
     <button id="downloadBtn" class="download-btn" onclick="downloadImage()">Tải xuống ảnh</button>
 </div>
 
@@ -126,27 +131,66 @@
     const ctx = canvas.getContext('2d');
     const styleSelect = document.getElementById('styleSelect');
     const downloadBtn = document.getElementById('downloadBtn');
+    const gpsStatus = document.getElementById('gpsStatus');
 
     let currentImg = null;
     let currentLocationText = 'Đang lấy vị trí...';
 
-    // Lấy thông tin GPS (Vị trí)
-    if (navigator.geolocation) {
+    // Hàm lấy GPS chuẩn hóa có xử lý lỗi chi tiết
+    function getGPSLocation() {
+        if (!navigator.geolocation) {
+            currentLocationText = 'GPS không được hỗ trợ';
+            gpsStatus.innerText = 'Lỗi: Trình duyệt của bạn không hỗ trợ Geolocation API.';
+            return;
+        }
+
+        // Kiểm tra nếu chạy file trực tiếp không qua HTTPS/Localhost
+        if (window.location.protocol === 'file:') {
+            currentLocationText = 'Lỗi bảo mật (Chạy file://)';
+            gpsStatus.innerHTML = '<span style="color: red;">Lỗi bảo mật: Bạn cần chạy ứng dụng qua mạng (HTTPS) hoặc localhost để sử dụng GPS.</span>';
+            return;
+        }
+
+        const options = {
+            enableHighAccuracy: true, // Yêu cầu độ chính xác cao
+            timeout: 8000,            // Chờ tối đa 8 giây
+            maximumAge: 0             // Không dùng vị trí cũ lưu trong bộ nhớ đệm
+        };
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const lat = position.coords.latitude.toFixed(4);
-                const lon = position.coords.longitude.toFixed(4);
+                const lat = position.coords.latitude.toFixed(5);
+                const lon = position.coords.longitude.toFixed(5);
                 currentLocationText = `Lat: ${lat}, Lon: ${lon}`;
+                gpsStatus.innerHTML = `<span style="color: green;">✓ Đã kết nối GPS thành công! (${currentLocationText})</span>`;
                 if (currentImg) redrawCanvas();
             },
-            () => {
-                currentLocationText = 'Không lấy được vị trí';
+            (error) => {
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        currentLocationText = 'Từ chối quyền GPS';
+                        gpsStatus.innerText = 'Lỗi: Bạn đã từ chối cấp quyền truy cập vị trí. Hãy bật lại trong cài đặt trình duyệt.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        currentLocationText = 'Vị trí không có sẵn';
+                        gpsStatus.innerText = 'Lỗi: Thiết bị không thể xác định được vị trí (sóng yếu hoặc tắt định vị máy).';
+                        break;
+                    case error.TIMEOUT:
+                        currentLocationText = 'Hết thời gian chờ GPS';
+                        gpsStatus.innerText = 'Lỗi: Quá thời gian phản hồi từ GPS. Hãy thử lại.';
+                        break;
+                    default:
+                        currentLocationText = 'Lỗi GPS chưa xác định';
+                        gpsStatus.innerText = 'Không lấy được vị trí.';
+                }
                 if (currentImg) redrawCanvas();
-            }
+            },
+            options
         );
-    } else {
-        currentLocationText = 'GPS không được hỗ trợ';
     }
+
+    // Gọi hàm lấy vị trí ngay khi ứng dụng mở ra
+    getGPSLocation();
 
     function handleImageLoad(e) {
         const file = e.target.files[0];
@@ -174,17 +218,14 @@
     function redrawCanvas() {
         if (!currentImg) return;
 
-        // Vẽ lại ảnh gốc
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
 
-        // Chuẩn bị nội dung dấu (mark)
         const now = new Date();
         const timeStr = now.toLocaleTimeString('vi-VN');
         const dateStr = now.toLocaleDateString('vi-VN');
         const fullText = `📍 ${timeStr} - ${dateStr} - ${currentLocationText}`;
 
-        // Cấu hình font chữ tương ứng với kích thước ảnh
         const fontSize = Math.max(16, Math.floor(canvas.width / 35));
         ctx.font = `bold ${fontSize}px Arial`;
         const textMetrics = ctx.measureText(fullText);
@@ -211,11 +252,9 @@
             y = textHeight + padding;
         }
 
-        // Vẽ nền chữ cho dễ đọc
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(x - padding/2, y - textHeight - padding/2, textWidth + padding, textHeight + padding);
 
-        // Vẽ chữ và biểu tượng định vị
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(fullText, x, y);
     }
@@ -223,7 +262,7 @@
     function downloadImage() {
         if (!currentImg) return;
         const link = document.createElement('a');
-        link.download = 'anh-da-dong-dau.png';
+        link.download = `anh_dong_dau_${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
