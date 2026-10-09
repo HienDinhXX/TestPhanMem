@@ -48,6 +48,7 @@
     const styleSelect = document.getElementById('styleSelect'), zoomInput = document.getElementById('zoomInput'), zoomValue = document.getElementById('zoomValue'), downloadBtn = document.getElementById('downloadBtn');
     let currentImg = null;
 
+    // Khởi tạo thời gian mặc định
     const now = new Date();
     timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -56,8 +57,19 @@
     styleSelect.addEventListener('change', redrawCanvas);
     zoomInput.addEventListener('input', () => { zoomValue.innerText = zoomInput.value + 'px'; redrawCanvas(); });
 
+    // Đổi định dạng 24h sang 12h (Kèm SA/CH hoặc AM/PM)
+    function convertTo12h(timeStr) {
+        if (!timeStr) return '--:--';
+        let [hours, minutes] = timeStr.split(':');
+        hours = parseInt(hours);
+        const ampm = hours >= 12 ? 'CH' : 'SA';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Số 0 đổi thành 12
+        return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+
     function handleImageLoad(e) {
-        if (!e.target.files[0]) return;
+        if (!e.target.files) return;
         const reader = new FileReader();
         reader.onload = function(event) {
             const img = new Image();
@@ -69,7 +81,7 @@
             }
             img.src = event.target.result;
         }
-        reader.readAsDataURL(e.target.files[0]);
+        reader.readAsDataURL(e.target.files);
     }
     uploadInput.addEventListener('change', handleImageLoad);
     cameraInput.addEventListener('change', handleImageLoad);
@@ -78,24 +90,86 @@
         if (!currentImg) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+
+        // Xử lý dữ liệu văn bản
         let dateStr = '';
         if (dateInput.value) { const [y, m, d] = dateInput.value.split('-'); dateStr = `${d}/${m}/${y}`; }
-        const fullText = `📍 ${timeInput.value || '--:--'} - ${dateStr} ${locationInput.value ? '- ' + locationInput.value : ''}`;
+        
+        const line1Text = `${convertTo12h(timeInput.value)} - ${dateStr}`;
+        const line2Text = locationInput.value || 'Vị trí chưa nhập';
+
+        // Tính toán kích thước chữ dựa trên thanh Zoom
         const fontSize = parseInt(zoomInput.value);
+        const lineSpacing = fontSize * 0.3; // Khoảng cách giữa 2 dòng chữ
+        const padding = fontSize * 0.6;
+
         ctx.font = `bold ${fontSize}px Arial`;
-        const textMetrics = ctx.measureText(fullText), textWidth = textMetrics.width, textHeight = fontSize, padding = fontSize * 0.6;
-        let x = padding, y = canvas.height - padding;
-        if (styleSelect.value === 'bottom-right') { x = canvas.width - textWidth - padding * 2; }
-        else if (styleSelect.value === 'top-left') { y = textHeight + padding; }
-        else if (styleSelect.value === 'top-right') { x = canvas.width - textWidth - padding * 2; y = textHeight + padding; }
+        const metrics1 = ctx.measureText(line1Text);
+        const metrics2 = ctx.measureText(line2Text);
+        
+        // Chiều rộng chữ lớn nhất trong 2 dòng
+        const maxTextWidth = Math.max(metrics1.width, metrics2.width);
+        
+        // Chiều cao tổng của phần văn bản (2 dòng + khoảng cách giữa 2 dòng)
+        const totalTextHeight = (fontSize * 2) + lineSpacing;
+
+        // Cấu hình Icon 📍 lớn chiếm 2 dòng
+        const iconSize = fontSize * 1.8; // Kích thước icon lớn gấp ~1.8 lần chữ
+        const iconText = "📍";
+        ctx.font = `${iconSize}px Arial`;
+        const iconMetrics = ctx.measureText(iconText);
+        const iconWidth = iconMetrics.width;
+
+        // Tổng chiều rộng của watermark nền = Khoảng đệm trái + Chiều rộng Icon + Khoảng cách từ icon tới chữ + Chiều rộng chữ + Khoảng đệm phải
+        const iconGap = fontSize * 0.4;
+        const totalBlockWidth = iconWidth + iconGap + maxTextWidth;
+
+        // Tính toán tọa độ vị trí khối dấu (X, Y) dựa theo lựa chọn
+        let blockX = padding;
+        let blockY = canvas.height - padding - totalTextHeight; // Mặc định ở góc dưới
+
+        if (styleSelect.value === 'bottom-left') {
+            blockX = padding;
+            blockY = canvas.height - padding - totalTextHeight;
+        } else if (styleSelect.value === 'bottom-right') {
+            blockX = canvas.width - totalBlockWidth - padding * 2;
+            blockY = canvas.height - padding - totalTextHeight;
+        } else if (styleSelect.value === 'top-left') {
+            blockX = padding;
+            blockY = padding;
+        } else if (styleSelect.value === 'top-right') {
+            blockX = canvas.width - totalBlockWidth - padding * 2;
+            blockY = padding;
+        }
+
+        // 1. Vẽ nền đen mờ bao bọc toàn bộ khối dấu (Icon + Chữ)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(x - padding/2, y - textHeight - padding/2, textWidth + padding, textHeight + padding);
+        ctx.fillRect(blockX - padding/2, blockY - padding/2, totalBlockWidth + padding, totalTextHeight + padding);
+
+        // 2. Vẽ Icon lớn ở bên trái (Căn giữa theo chiều cao của khối chữ)
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(fullText, x, y);
+        ctx.font = `${iconSize}px Arial`;
+        ctx.textBaseline = 'middle';
+        // Tọa độ Y của icon nằm chính giữa khối văn bản
+        const iconY = blockY + (totalTextHeight / 2);
+        ctx.fillText(iconText, blockX, iconY);
+
+        // 3. Vẽ 2 dòng chữ ở bên phải Icon
+        const textX = blockX + iconWidth + iconGap;
+        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.textBaseline = 'top'; // Đặt chế độ vẽ chữ từ đỉnh góc trên
+
+        // Dòng 1 (Thời gian + Ngày tháng)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(line1Text, textX, blockY);
+
+        // Dòng 2 (Vị trí)
+        ctx.fillText(line2Text, textX, blockY + fontSize + lineSpacing);
     }
+
     function downloadImage() {
         if (!currentImg) return;
-        const link = document.createElement('a'); link.download = `anh_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+        const link = document.createElement('a'); link.download = `anh_2dong_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
     }
 </script>
 </body>
