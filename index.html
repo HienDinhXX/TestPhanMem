@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng Dụng Đóng Dấu Ảnh (Watermark)</title>
+    <title>Ứng Dung Đóng Dấu Ảnh (Watermark)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter & Roboto -->
@@ -29,7 +29,7 @@
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 00-2-2V9z"></path>
                         <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
                     </svg>
                 </div>
@@ -137,9 +137,9 @@
                 <span id="resolutionBadge" class="text-xs text-slate-400 font-mono">Chưa chọn ảnh</span>
             </div>
 
-            <!-- Khung chứa Canvas có hỗ trợ scroll nếu quá to hoặc tự co dãn -->
+            <!-- Khung chứa Canvas -->
             <div class="w-full bg-slate-900/5 border border-slate-200 rounded-xl p-2 sm:p-4 flex items-center justify-center min-h-[300px] max-h-[600px] overflow-auto relative">
-                <!-- Skeleton / Demo hint khi chưa có ảnh -->
+                <!-- Placeholder khi chưa có ảnh -->
                 <div id="canvasPlaceholder" class="text-center p-8 text-slate-400 flex flex-col items-center">
                     <svg class="w-16 h-16 mb-3 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -182,7 +182,8 @@
         const btnDownload = document.getElementById('btnDownload');
         const resolutionBadge = document.getElementById('resolutionBadge');
 
-        let loadedImage = null; // Lưu đối tượng Image khi người dùng chọn
+        let loadedImage = null; // Lưu đối tượng Image
+        let downloadCounter = 1; // Biến đếm từ 1 đến 100
 
         // Initialize default time & date
         function initDateTime() {
@@ -193,7 +194,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'CH' : 'SA';
             hours = hours % 12;
-            hours = hours ? hours : 12; // convert 0 to 12
+            hours = hours ? hours : 12;
             const strTime = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
 
             // Format DD/MM/YYYY
@@ -228,6 +229,17 @@
                 const img = new Image();
                 img.onload = function() {
                     loadedImage = img;
+                    
+                    // Tính toán Max Zoom dựa vào độ phân giải ảnh
+                    const minDimension = Math.min(img.naturalWidth, img.naturalHeight);
+                    if (minDimension > 2000) {
+                        zoomRange.max = 500;
+                    } else if (minDimension > 1000) {
+                        zoomRange.max = 400;
+                    } else {
+                        zoomRange.max = 300;
+                    }
+
                     // Hiện canvas, ẩn placeholder
                     canvas.classList.remove('hidden');
                     canvasPlaceholder.classList.add('hidden');
@@ -244,14 +256,13 @@
             reader.readAsDataURL(file);
         }
 
-        // Lấy vị trí từ trình duyệt nếu có hỗ trợ GPS
+        // Lấy vị trí từ trình duyệt
         btnGetLocation.addEventListener('click', () => {
             if (navigator.geolocation) {
                 btnGetLocation.classList.add('animate-spin', 'text-blue-600');
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         btnGetLocation.classList.remove('animate-spin', 'text-blue-600');
-                        // Tùy biến text tọa độ hoặc giữ mặc định
                         const lat = pos.coords.latitude.toFixed(3);
                         const lng = pos.coords.longitude.toFixed(3);
                         locationInput.value = `Tọa độ: ${lat}, ${lng}`;
@@ -278,34 +289,29 @@
         });
 
         /**
-         * Hàm vẽ Icon Ghim Vị Trí Zalo / Maps Badge bằng Canvas Path
+         * Hàm vẽ Icon Ghim Vị Trí Zalo / Maps Badge
          */
         function drawLocationPin(ctx, x, y, size) {
             ctx.save();
             ctx.beginPath();
             
-            // Vẽ giọt nước / ghim vị trí bo tròn
             const radius = size * 0.35;
             const centerY = y + radius;
             const centerX = x + size / 2;
 
-            // Hình tròn phía trên
             ctx.arc(centerX, centerY, radius, Math.PI * 0.8, Math.PI * 0.2, false);
-            // Điểm nhọn ghim ở dưới
             ctx.lineTo(centerX, y + size);
             ctx.closePath();
 
-            // Style làm viền đổ bóng nổi bật
             ctx.fillStyle = '#FFFFFF';
             ctx.shadowColor = 'rgba(0,0,0,0.6)';
             ctx.shadowBlur = Math.max(4, size * 0.1);
             ctx.fill();
 
-            // Chấm tròn nhỏ ở giữa ghim
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius * 0.4, 0, Math.PI * 2, false);
-            ctx.fillStyle = '#2563eb'; // Màu xanh Zalo/Maps
-            ctx.shadowBlur = 0; // Tắt shadow cho lõi
+            ctx.fillStyle = '#2563eb';
+            ctx.shadowBlur = 0;
             ctx.fill();
 
             ctx.restore();
@@ -320,7 +326,6 @@
             const width = loadedImage.naturalWidth;
             const height = loadedImage.naturalHeight;
 
-            // Thiết lập kích thước Canvas trùng với ảnh thực
             canvas.width = width;
             canvas.height = height;
 
@@ -329,7 +334,6 @@
             ctx.drawImage(loadedImage, 0, 0, width, height);
 
             // 2. Tính toán Font size căn cứ theo kích thước ảnh & Slider Zoom
-            // Mặc định lấy 2.2% đường kính ngắn hơn của ảnh làm chuẩn font
             const minDimension = Math.min(width, height);
             const userZoom = parseFloat(zoomRange.value) / 100;
             const baseFontSize = Math.max(16, Math.round(minDimension * 0.028 * userZoom));
@@ -341,53 +345,39 @@
             const fontStyle = `bold ${baseFontSize}px ${fontName}`;
             ctx.font = fontStyle;
 
-            // Đo độ rộng chữ để tính toán bounding box / offset
             const line1Width = ctx.measureText(line1Text).width;
             const line2Width = ctx.measureText(line2Text).width;
             const maxTextWidth = Math.max(line1Width, line2Width);
 
             const lineHeight = baseFontSize * 1.35;
-            const totalTextHeight = lineHeight * 2; // Dòng 1 + Dòng 2
+            const totalTextHeight = lineHeight * 2;
 
-            // Kích thước Icon tương ứng tổng chiều cao chữ
             const iconSize = totalTextHeight * 1.05;
-            const spacing = baseFontSize * 0.5; // Khoảng cách giữa Icon và Text
+            const spacing = baseFontSize * 0.5;
 
-            // Safe margin tính từ mép ảnh
             const margin = Math.max(20, Math.round(minDimension * 0.035));
 
             const position = positionSelect.value;
-            let startX, startY;
+            let startY;
             const isLeft = position.includes('left');
             const isTop = position.includes('top');
 
-            // Tính Y cơ sở (Top of watermark box)
             if (isTop) {
                 startY = margin;
             } else {
                 startY = height - margin - totalTextHeight;
             }
 
-            // Dấu bao gồm Icon + Spacing + Text
-            const totalWatermarkWidth = iconSize + spacing + maxTextWidth;
-
             let iconX, textX;
 
             if (isLeft) {
-                // [Icon] [Spacing] [Text Left-aligned]
                 iconX = margin;
-                textX = iconX + iconX_Offset(isLeft, iconSize, spacing);
+                textX = iconX + iconSize + spacing;
             } else {
-                // [Text Right-aligned] [Spacing] [Icon]
                 iconX = width - margin - iconSize;
                 textX = iconX - spacing;
             }
 
-            function iconX_Offset(left, iSize, sp) {
-                return left ? (iSize + sp) : -sp;
-            }
-
-            // Thiết lập hiệu ứng Đổ bóng (Text Shadow) & Stroke để chữ rõ nét không cần khung
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
             ctx.shadowBlur = Math.max(6, Math.round(baseFontSize * 0.25));
@@ -399,7 +389,6 @@
             ctx.lineWidth = Math.max(1, Math.round(baseFontSize * 0.08));
             ctx.font = fontStyle;
 
-            // Tùy chỉnh căn lề chữ Dynamic Alignment
             if (isLeft) {
                 ctx.textAlign = 'left';
             } else {
@@ -407,15 +396,14 @@
             }
             ctx.textBaseline = 'top';
 
-            // Tọa độ Y cho 2 dòng
             const line1Y = startY + (totalTextHeight - (lineHeight * 2)) / 2;
             const line2Y = line1Y + lineHeight;
 
-            // Vẽ Dòng 1: Giờ + Ngày
+            // Dòng 1: Giờ + Ngày
             ctx.strokeText(line1Text, textX, line1Y);
             ctx.fillText(line1Text, textX, line1Y);
 
-            // Vẽ Dòng 2: Địa điểm
+            // Dòng 2: Địa điểm
             ctx.strokeText(line2Text, textX, line2Y);
             ctx.fillText(line2Text, textX, line2Y);
 
@@ -426,13 +414,41 @@
             drawLocationPin(ctx, iconX, iconY, iconSize);
         }
 
+        /**
+         * Hàm tạo tên file theo chuẩn yêu cầu:
+         * IMG_thờigianngàytháng_tíchtắc_sốthứtự (ví dụ: IMG_143009102026_123456_01.png)
+         */
+        function generateFileName() {
+            // Lấy thời gian & ngày tháng từ ô input (làm sạch loại bỏ ký tự đặc biệt)
+            const timeRaw = timeInput.value.replace(/[^0-9]/g, ''); // Ví dụ "09:30 CH" -> "0930"
+            const dateRaw = dateInput.value.replace(/[^0-9]/g, ''); // Ví dụ "09/10/2026" -> "09102026"
+            const dateTimeStr = (timeRaw + dateRaw) || '000000000000';
+
+            // Tích tắc miligiây hiện tại
+            const now = new Date();
+            const ticks = now.getTime().toString().slice(-6); // 6 số cuối của timestamp ms
+
+            // Số thứ tự từ 1 đến 100 (định dạng 2 chữ số: 01, 02, ..., 100)
+            const seqStr = String(downloadCounter).padStart(2, '0');
+
+            // Tăng biến đếm và xoay vòng về 1 khi quá 100
+            downloadCounter++;
+            if (downloadCounter > 100) {
+                downloadCounter = 1;
+            }
+
+            return `IMG_${dateTimeStr}_${ticks}_${seqStr}.png`;
+        }
+
         // Tải xuống ảnh đã chèn watermark
         btnDownload.addEventListener('click', () => {
             if (!loadedImage) return;
 
+            const fileName = generateFileName();
+
             // Tạo link tải ảnh
             const link = document.createElement('a');
-            link.download = `Watermark_${Date.now()}.png`;
+            link.download = fileName;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
         });
