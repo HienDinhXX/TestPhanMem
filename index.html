@@ -3,106 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Đóng Dấu Ảnh</title>
+    <title>Đóng Dấu Ảnh Chuyên Nghiệp</title>
+    <!-- Tailwind CSS for modern responsive UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 550px; width: 100%; text-align: center; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
-        button, label.btn { background-color: #007bff; color: white; border: none; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
-        input[type="file"] { display: none; }
-        .controls { margin: 20px 0; text-align: left; }
-        .form-row { display: flex; align-items: center; margin-bottom: 12px; }
-        .form-label { flex: 0 0 35%; font-weight: bold; font-size: 14px; color: #333; }
-        .form-input { flex: 0 0 65%; box-sizing: border-box; }
-        input[type="text"], input[type="time"], input[type="date"], select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
-        .zoom-container { display: flex; align-items: center; width: 100%; gap: 10px; }
-        input[type="range"] { flex: 1; cursor: pointer; }
-        .zoom-value { font-size: 14px; font-weight: bold; min-width: 35px; text-align: right; }
-        canvas { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd; display: none; margin-top: 15px; }
-        .download-btn { background-color: #28a745; margin-top: 15px; display: none; width: 100%; color: white; border: none; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f3f4f6;
+        }
+        input[type=range] {
+            accent-color: #2563eb;
+        }
     </style>
 </head>
-<body>
-<div class="container">
-    <h2>Ứng dụng Đóngn Dấu Ảnh</h2>
-    <div class="btn-group">
-        <label for="uploadInput" class="btn">Tải ảnh từ máy</label>
-        <input type="file" id="uploadInput" accept="image/*">
-        <label for="cameraInput" class="btn">Chụp ảnh trực tiếp</label>
-        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+<body class="min-h-screen text-gray-800 p-3 md:p-6 flex flex-col items-center">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-4 md:p-8 flex flex-col gap-6">
+        
+        <!-- Header & Action Buttons -->
+        <div class="text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Đóng Dấu Ảnh Vị Trí & Thời Gian</h1>
+            <p class="text-sm text-gray-500 mb-6">Thêm dấu thời gian, ngày tháng và vị trí lên bức ảnh của bạn dễ dàng</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center gap-3">
+                <button onclick="document.getElementById('fileInput').click()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Tải ảnh từ máy
+                </button>
+                <button onclick="document.getElementById('cameraInput').click()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Chụp ảnh trực tiếp
+                </button>
+            </div>
+
+            <!-- Hidden File Inputs -->
+            <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageLoad(event)">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleImageLoad(event)">
+        </div>
+
+        <!-- Controls Grid (2 Columns) -->
+        <div class="bg-gray-50 p-4 md:p-6 rounded-xl border border-gray-200">
+            <h2 class="text-base font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-200">Tùy chỉnh thông tin đóng dấu</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <!-- Left Column: Labels -->
+                <div class="hidden md:flex flex-col justify-between py-1 font-medium text-gray-700 space-y-4">
+                    <div class="h-10 flex items-center">Vị trí:</div>
+                    <div class="h-10 flex items-center">Thời gian (hh:mm):</div>
+                    <div class="h-10 flex items-center">Ngày tháng (yyyy-mm-dd):</div>
+                    <div class="h-10 flex items-center">Vị trí hiển thị:</div>
+                    <div class="h-10 flex items-center">Kích thước Zoom:</div>
+                </div>
+
+                <!-- Right Column: Controls -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block md:hidden text-sm font-medium text-gray-700 mb-1">Vị trí</label>
+                        <input type="text" id="locationInput" placeholder="Nhập địa điểm (ví dụ: Hà Nội, Việt Nam)" 
+                               class="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+
+                    <div>
+                        <label class="block md:hidden text-sm font-medium text-gray-700 mb-1">Thời gian (hh:mm)</label>
+                        <input type="time" id="timeInput" 
+                               class="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+
+                    <div>
+                        <label class="block md:hidden text-sm font-medium text-gray-700 mb-1">Ngày tháng (yyyy-mm-dd)</label>
+                        <input type="date" id="dateInput" 
+                               class="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+
+                    <div>
+                        <label class="block md:hidden text-sm font-medium text-gray-700 mb-1">Vị trí hiển thị</label>
+                        <select id="positionSelect" 
+                                class="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <option value="bottom-left">Dưới cùng - Trái</option>
+                            <option value="bottom-right" selected>Dưới cùng - Phải</option>
+                            <option value="top-left">Trên cùng - Trái</option>
+                            <option value="top-right">Trên cùng - Phải</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block md:hidden text-sm font-medium text-gray-700 mb-1">Kích thước Zoom</label>
+                        <div class="flex items-center gap-3 h-10">
+                            <input type="range" id="zoomRange" min="10" max="100" value="25" 
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="zoomValue" class="text-xs font-semibold text-gray-500 min-w-[3rem] text-right">25px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas & Output Area -->
+        <div class="flex flex-col items-center gap-4">
+            <div id="canvasContainer" class="w-full flex justify-center items-center bg-gray-100 rounded-xl overflow-hidden border border-dashed border-gray-300 min-h-[250px] p-2 relative">
+                <canvas id="imageCanvas" class="max-w-full h-auto rounded-lg shadow-sm hidden"></canvas>
+                <div id="placeholderText" class="text-gray-400 text-sm flex flex-col items-center gap-2 py-12">
+                    <svg class="w-12 h-12 stroke-current opacity-60" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span>Vui lòng chọn hoặc chụp một bức ảnh để bắt đầu</span>
+                </div>
+            </div>
+
+            <!-- Download Button -->
+            <button id="downloadBtn" onclick="downloadImage()" disabled
+                    class="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Tải xuống ảnh
+            </button>
+        </div>
+
     </div>
-    <div class="controls">
-        <div class="form-row"><div class="form-label">Vị trí:</div><div class="form-input"><input type="text" id="locationInput" value="Hà Nội"></div></div>
-        <div class="form-row"><div class="form-label">Thời gian:</div><div class="form-input"><input type="time" id="timeInput"></div></div>
-        <div class="form-row"><div class="form-label">Ngày tháng:</div><div class="form-input"><input type="date" id="dateInput"></div></div>
-        <div class="form-row"><div class="form-label">Vị trí hiển thị:</div><div class="form-input"><select id="styleSelect"><option value="bottom-left">Dưới cùng - Bên trái</option><option value="bottom-right">Dưới cùng - Bên phải</option><option value="top-left">Trên cùng - Bên trái</option><option value="top-right">Trên cùng - Bên phải</option></select></div></div>
-        <div class="form-row"><div class="form-label">Kích thước (Zoom):</div><div class="form-input zoom-container"><input type="range" id="zoomInput" min="10" max="100" value="30"><span id="zoomValue" class="zoom-value">30px</span></div></div>
-    </div>
-    <canvas id="photoCanvas"></canvas>
-    <button id="downloadBtn" class="download-btn" onclick="downloadImage()">Tải xuống ảnh</button>
-</div>
-<script>
-    const uploadInput = document.getElementById('uploadInput'), cameraInput = document.getElementById('cameraInput');
-    const canvas = document.getElementById('photoCanvas'), ctx = canvas.getContext('2d');
-    const locationInput = document.getElementById('locationInput'), timeInput = document.getElementById('timeInput'), dateInput = document.getElementById('dateInput');
-    const styleSelect = document.getElementById('styleSelect'), zoomInput = document.getElementById('zoomInput'), zoomValue = document.getElementById('zoomValue'), downloadBtn = document.getElementById('downloadBtn');
-    let currentImg = null;
 
-    const now = new Date();
-    timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    <script>
+        // Global State
+        let currentImage = null;
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
 
-    [locationInput, timeInput, dateInput, styleSelect].forEach(el => el.addEventListener('input', redrawCanvas));
-    styleSelect.addEventListener('change', redrawCanvas);
-    zoomInput.addEventListener('input', () => { zoomValue.innerText = zoomInput.value + 'px'; redrawCanvas(); });
+        // Form Controls
+        const locationInput = document.getElementById('locationInput');
+        const timeInput = document.getElementById('timeInput');
+        const dateInput = document.getElementById('dateInput');
+        const positionSelect = document.getElementById('positionSelect');
+        const zoomRange = document.getElementById('zoomRange');
+        const zoomValue = document.getElementById('zoomValue');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const placeholderText = document.getElementById('placeholderText');
 
-    function convertTo12h(t) {
-        if (!t) return '--:--';
-        let [h, m] = t.split(':'); h = parseInt(h);
-        return `${String(h % 12 || 12).padStart(2, '0')}:${m} ${h >= 12 ? 'CH' : 'SA'}`;
-    }
+        // Initial setup on DOM ready
+        window.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            
+            // Format HH:mm
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
 
-    function handleImageLoad(e) {
-        const files = e.target.files; if (!files || files.length === 0) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const img = new Image();
-            img.onload = function() {
-                currentImg = img; canvas.width = img.width; canvas.height = img.height;
-                const defZoom = Math.max(16, Math.floor(img.width / 35));
-                zoomInput.max = Math.max(200, Math.floor(img.width / 10)); zoomInput.value = defZoom; zoomValue.innerText = defZoom + 'px';
-                canvas.style.display = 'block'; downloadBtn.style.display = 'block'; redrawCanvas();
-            }
-            img.src = evt.target.result;
+            // Format YYYY-MM-DD
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            dateInput.value = `${year}-${month}-${day}`;
+
+            // Default location
+            locationInput.value = "Hà Nội, Việt Nam";
+
+            // Attach listeners for real-time rendering
+            [locationInput, timeInput, dateInput, positionSelect, zoomRange].forEach(input => {
+                input.addEventListener('input', updateCanvas);
+                input.addEventListener('change', updateCanvas);
+            });
+        });
+
+        // Image loader handler
+        function handleImageLoad(e) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    
+                    // Set canvas actual size matching image resolution
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // Automatically compute max zoom based on photo resolution
+                    const baseDimension = Math.min(img.width, img.height);
+                    const dynamicMaxZoom = Math.max(100, Math.round(baseDimension * 0.08));
+                    const defaultZoom = Math.round(dynamicMaxZoom * 0.35);
+
+                    zoomRange.max = dynamicMaxZoom;
+                    zoomRange.value = defaultZoom;
+                    zoomValue.textContent = defaultZoom + 'px';
+
+                    // UI visibility
+                    canvas.classList.remove('hidden');
+                    placeholderText.classList.add('hidden');
+                    downloadBtn.disabled = false;
+
+                    updateCanvas();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
         }
-        reader.readAsDataURL(files[0]);
-    }
-    uploadInput.addEventListener('change', handleImageLoad);
-    cameraInput.addEventListener('change', handleImageLoad);
 
-    function redrawCanvas() {
-        if (!currentImg) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
-        let dStr = ''; if (dateInput.value) { const [y, m, d] = dateInput.value.split('-'); dStr = `${d}/${m}/${y}`; }
-        const l1 = `${convertTo12h(timeInput.value)} - ${dStr}`, l2 = locationInput.value || '';
-        const fontSize = parseInt(zoomInput.value), lineSpacing = fontSize * 0.3, padding = fontSize * 0.6;
-        ctx.font = `bold ${fontSize}px Arial`;
-        const maxW = Math.max(ctx.measureText(l1).width, ctx.measureText(l2).width), totalH = (fontSize * 2) + lineSpacing;
-        const iconSize = fontSize * 1.8, iconText = "📍"; ctx.font = `${iconSize}px Arial`;
-        const iconW = ctx.measureText(iconText).width, iconGap = fontSize * 0.4, totalW = iconW + iconGap + maxW;
-        let bx = padding, by = canvas.height - padding - totalH;
-        if (styleSelect.value === 'bottom-right') bx = canvas.width - totalW - padding * 2;
-        else if (styleSelect.value === 'top-left') by = padding;
-        else if (styleSelect.value === 'top-right') { bx = canvas.width - totalW - padding * 2; by = padding; }
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(bx - padding/2, by - padding/2, totalW + padding, totalH + padding);
-        ctx.fillStyle = '#FFFFFF'; ctx.font = `${iconSize}px Arial`; ctx.textBaseline = 'middle'; ctx.fillText(iconText, bx, by + (totalH / 2));
-        ctx.font = `bold ${fontSize}px Arial`; ctx.textBaseline = 'top'; ctx.fillText(l1, bx + iconW + iconGap, by);
-        ctx.fillText(l2, bx + iconW + iconGap, by + fontSize + lineSpacing);
-    }
-    function downloadImage() {
-        if (!currentImg) return;
-        const link = document.createElement('a'); link.download = `anh_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-    }
-</script>
+        // Helper: Convert time HH:mm to 12h format with SA/CH
+        function getFormattedTime(timeStr) {
+            if (!timeStr) return '';
+            const [h, m] = timeStr.split(':').map(Number);
+            const period = h >= 12 ? 'CH' : 'SA';
+            const hours12 = h % 12 || 12;
+            const formattedH = String(hours12).padStart(2, '0');
+            return `${formattedH}:${String(m).padStart(2, '0')} ${period}`;
+        }
+
+        // Helper: Convert YYYY-MM-DD to DD/MM/YYYY
+        function getFormattedDate(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        // Helper: Draw Zalo Style Location Pin Badge
+        function drawZaloLocationPin(ctx, x, y, size) {
+            ctx.save();
+            
+            const width = size * 0.85;
+            const height = size;
+            const radius = width / 2;
+            
+            // Draw Pin Shape (Teardrop Badge)
+            ctx.beginPath();
+            ctx.arc(x + radius, y + radius, radius, Math.PI, 0, false);
+            ctx.bezierCurveTo(
+                x + width, y + radius + (height - radius) * 0.5,
+                x + radius + 2, y + height,
+                x + radius, y + height
+            );
+            ctx.bezierCurveTo(
+                x + radius - 2, y + height,
+                x, y + radius + (height - radius) * 0.5,
+                x, y + radius
+            );
+            ctx.closePath();
+
+            // Zalo Pin Red Gradient
+            const gradient = ctx.createLinearGradient(x, y, x, y + height);
+            gradient.addColorStop(0, '#FF4D4F');
+            gradient.addColorStop(1, '#DC2626');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // White border for high visibility
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = Math.max(2, size * 0.08);
+            ctx.stroke();
+
+            // Inner White Center Dot
+            ctx.beginPath();
+            ctx.arc(x + radius, y + radius, radius * 0.38, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function updateCanvas() {
+            if (!currentImage) return;
+
+            const fontSize = parseInt(zoomRange.value);
+            zoomValue.textContent = fontSize + 'px';
+
+            // Clear and redraw background photo
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0);
+
+            // Watermark Data
+            const timeText = getFormattedTime(timeInput.value);
+            const dateText = getFormattedDate(dateInput.value);
+            const line1Text = `${timeText} ${dateText}`.trim();
+            const line2Text = locationInput.value.trim();
+
+            const pinSize = fontSize * 1.8;
+            const textLineGap = fontSize * 0.35;
+            const pinTextGap = fontSize * 0.45;
+            const margin = Math.max(20, Math.min(canvas.width, canvas.height) * 0.035);
+
+            const contentHeight = (fontSize * 2) + textLineGap;
+
+            const pos = positionSelect.value;
+            const isRightAligned = pos.includes('right');
+            const isBottomAligned = pos.includes('bottom');
+
+            ctx.save();
+
+            // Top vs Bottom Calculation
+            let baseY = margin + (fontSize * 0.85);
+            if (isBottomAligned) {
+                baseY = canvas.height - margin - contentHeight + (fontSize * 0.85);
+            }
+
+            // High Contrast Text Shadow & Outline for reading without background overlay
+            const shadowBlur = Math.max(3, fontSize * 0.15);
+            const strokeWidth = Math.max(2, fontSize * 0.08);
+
+            if (isRightAligned) {
+                // RIGHT ALIGNMENT: Icon on the RIGHTmost, text aligned RIGHT on the left of icon
+                const pinX = canvas.width - margin - (pinSize * 0.85);
+                const textX = pinX - pinTextGap;
+
+                // Draw Zalo Pin Icon on the Right
+                const pinY = baseY + (contentHeight / 2) - (pinSize / 2) - (fontSize * 0.1);
+                drawZaloLocationPin(ctx, pinX, pinY, pinSize);
+
+                // Configure Text (Right Aligned)
+                ctx.font = `bold ${fontSize}px Arial`;
+                ctx.textAlign = 'right';
+
+                const line1Y = baseY;
+                const line2Y = line1Y + fontSize + textLineGap;
+
+                // Draw Text Outline (Dark Stroke for clarity)
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.lineWidth = strokeWidth;
+                ctx.lineJoin = 'round';
+                ctx.strokeText(line1Text, textX, line1Y);
+                ctx.strokeText(line2Text, textX, line2Y);
+
+                // Draw Solid White Text
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = shadowBlur;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 2;
+                ctx.fillText(line1Text, textX, line1Y);
+                ctx.fillText(line2Text, textX, line2Y);
+
+            } else {
+                // LEFT ALIGNMENT: Icon on the LEFTmost, text aligned LEFT on the right of icon
+                const pinX = margin;
+                const textX = pinX + (pinSize * 0.85) + pinTextGap;
+
+                // Draw Zalo Pin Icon on the Left
+                const pinY = baseY + (contentHeight / 2) - (pinSize / 2) - (fontSize * 0.1);
+                drawZaloLocationPin(ctx, pinX, pinY, pinSize);
+
+                // Configure Text (Left Aligned)
+                ctx.font = `bold ${fontSize}px Arial`;
+                ctx.textAlign = 'left';
+
+                const line1Y = baseY;
+                const line2Y = line1Y + fontSize + textLineGap;
+
+                // Draw Text Outline (Dark Stroke for clarity)
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.lineWidth = strokeWidth;
+                ctx.lineJoin = 'round';
+                ctx.strokeText(line1Text, textX, line1Y);
+                ctx.strokeText(line2Text, textX, line2Y);
+
+                // Draw Solid White Text
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = shadowBlur;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 2;
+                ctx.fillText(line1Text, textX, line1Y);
+                ctx.fillText(line2Text, textX, line2Y);
+            }
+
+            ctx.restore();
+        }
+
+        function downloadImage() {
+            if (!currentImage) return;
+
+            const imageURI = canvas.toDataURL('image/jpeg', 0.95);
+            const link = document.createElement('a');
+            link.download = `watermark_${Date.now()}.jpg`;
+            link.href = imageURI;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
 </body>
 </html>
