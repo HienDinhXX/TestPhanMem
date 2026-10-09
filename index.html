@@ -3,269 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Chụp & Đóng Dấu Ảnh</title>
+    <title>Ứng dụng Đóng Dấu Ảnh</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        button, label.btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button:hover, label.btn:hover {
-            background-color: #0056b3;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        .controls {
-            margin: 15px 0;
-            text-align: left;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #333;
-        }
-        input[type="text"], input[type="time"], input[type="date"], select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        .canvas-container {
-            margin-top: 15px;
-            position: relative;
-            width: 100%;
-        }
-        canvas {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            display: none;
-        }
-        .download-btn {
-            background-color: #28a745;
-            margin-top: 15px;
-            display: none;
-            width: 100%;
-        }
-        .download-btn:hover {
-            background-color: #218838;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 550px; width: 100%; text-align: center; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        button, label.btn { background-color: #007bff; color: white; border: none; padding: 12px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        input[type="file"] { display: none; }
+        .controls { margin: 20px 0; text-align: left; }
+        .form-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .form-label { flex: 0 0 35%; font-weight: bold; font-size: 14px; color: #333; }
+        .form-input { flex: 0 0 65%; box-sizing: border-box; }
+        input[type="text"], input[type="time"], input[type="date"], select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+        .zoom-container { display: flex; align-items: center; width: 100%; gap: 10px; }
+        input[type="range"] { flex: 1; cursor: pointer; }
+        .zoom-value { font-size: 14px; font-weight: bold; min-width: 35px; text-align: right; }
+        canvas { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd; display: none; margin-top: 15px; }
+        .download-btn { background-color: #28a745; margin-top: 15px; display: none; width: 100%; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h2>Ứng dụng Đóng Dấu Ảnh</h2>
-
-    <!-- 1 nút tải ảnh từ máy, 1 nút chụp ảnh trực tiếp -->
     <div class="btn-group">
         <label for="uploadInput" class="btn">Tải ảnh từ máy</label>
         <input type="file" id="uploadInput" accept="image/*">
-
         <label for="cameraInput" class="btn">Chụp ảnh trực tiếp</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment">
     </div>
-
-    <!-- Khu vực nhập thông tin dấu và chọn kiểu thêm -->
     <div class="controls">
-        <div class="form-group">
-            <label for="locationInput">Nhập vị trí đóng dấu:</label>
-            <input type="text" id="locationInput" placeholder="Ví dụ: Hà Nội, Việt Nam" value="Hà Nội">
-        </div>
-
-        <div class="form-group">
-            <label for="timeInput">Chỉnh thời gian:</label>
-            <input type="time" id="timeInput">
-        </div>
-
-        <div class="form-group">
-            <label for="dateInput">Chỉnh ngày tháng:</label>
-            <input type="date" id="dateInput">
-        </div>
-
-        <div class="form-group">
-            <label for="styleSelect">Chọn kiểu thêm dấu (Vị trí hiển thị):</label>
-            <select id="styleSelect">
-                <option value="bottom-left">Dưới cùng - Bên trái</option>
-                <option value="bottom-right">Dưới cùng - Bên phải</option>
-                <option value="top-left">Trên cùng - Bên trái</option>
-                <option value="top-right">Trên cùng - Bên phải</option>
-            </select>
-        </div>
+        <div class="form-row"><div class="form-label">Vị trí:</div><div class="form-input"><input type="text" id="locationInput" value="Hà Nội"></div></div>
+        <div class="form-row"><div class="form-label">Thời gian:</div><div class="form-input"><input type="time" id="timeInput"></div></div>
+        <div class="form-row"><div class="form-label">Ngày tháng:</div><div class="form-input"><input type="date" id="dateInput"></div></div>
+        <div class="form-row"><div class="form-label">Vị trí hiển thị:</div><div class="form-input"><select id="styleSelect"><option value="bottom-left">Dưới cùng - Bên trái</option><option value="bottom-right">Dưới cùng - Bên phải</option><option value="top-left">Trên cùng - Bên trái</option><option value="top-right">Trên cùng - Bên phải</option></select></div></div>
+        <div class="form-row"><div class="form-label">Kích thước (Zoom):</div><div class="form-input zoom-container"><input type="range" id="zoomInput" min="10" max="100" value="30"><span id="zoomValue" class="zoom-value">30px</span></div></div>
     </div>
-
-    <!-- Ảnh hiển thị sau khi thêm/chụp -->
-    <div class="canvas-container">
-        <canvas id="photoCanvas"></canvas>
-    </div>
-
-    <!-- 1 nút tải xuống -->
+    <canvas id="photoCanvas"></canvas>
     <button id="downloadBtn" class="download-btn" onclick="downloadImage()">Tải xuống ảnh</button>
 </div>
-
 <script>
-    const uploadInput = document.getElementById('uploadInput');
-    const cameraInput = document.getElementById('cameraInput');
-    const canvas = document.getElementById('photoCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Các ô nhập liệu mới
-    const locationInput = document.getElementById('locationInput');
-    const timeInput = document.getElementById('timeInput');
-    const dateInput = document.getElementById('dateInput');
-    const styleSelect = document.getElementById('styleSelect');
-    const downloadBtn = document.getElementById('downloadBtn');
-
+    const uploadInput = document.getElementById('uploadInput'), cameraInput = document.getElementById('cameraInput');
+    const canvas = document.getElementById('photoCanvas'), ctx = canvas.getContext('2d');
+    const locationInput = document.getElementById('locationInput'), timeInput = document.getElementById('timeInput'), dateInput = document.getElementById('dateInput');
+    const styleSelect = document.getElementById('styleSelect'), zoomInput = document.getElementById('zoomInput'), zoomValue = document.getElementById('zoomValue'), downloadBtn = document.getElementById('downloadBtn');
     let currentImg = null;
 
-    // Tự động điền Giờ hiện tại và Ngày hiện tại của máy làm mặc định khi mở app
     const now = new Date();
-    
-    // Định dạng giờ hh:mm
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    timeInput.value = `${hours}:${minutes}`;
+    timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // Định dạng ngày yyyy-mm-dd cho ô input date
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    dateInput.value = `${year}-${month}-${day}`;
-
-    // Lắng nghe sự kiện thay đổi của các ô nhập để cập nhật trực tiếp lên ảnh
-    locationInput.addEventListener('input', redrawCanvas);
-    timeInput.addEventListener('change', redrawCanvas);
-    dateInput.addEventListener('change', redrawCanvas);
+    [locationInput, timeInput, dateInput, styleSelect].forEach(el => el.addEventListener('input', redrawCanvas));
     styleSelect.addEventListener('change', redrawCanvas);
+    zoomInput.addEventListener('input', () => { zoomValue.innerText = zoomInput.value + 'px'; redrawCanvas(); });
 
     function handleImageLoad(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
+        if (!e.target.files[0]) return;
         const reader = new FileReader();
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
-                currentImg = img;
-                canvas.width = img.width;
-                canvas.height = img.height;
-                canvas.style.display = 'block';
-                downloadBtn.style.display = 'block';
-                redrawCanvas();
+                currentImg = img; canvas.width = img.width; canvas.height = img.height;
+                const defZoom = Math.max(16, Math.floor(img.width / 35));
+                zoomInput.max = Math.max(200, Math.floor(img.width / 10)); zoomInput.value = defZoom; zoomValue.innerText = defZoom + 'px';
+                canvas.style.display = 'block'; downloadBtn.style.display = 'block'; redrawCanvas();
             }
             img.src = event.target.result;
         }
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(e.target.files[0]);
     }
-
     uploadInput.addEventListener('change', handleImageLoad);
     cameraInput.addEventListener('change', handleImageLoad);
 
     function redrawCanvas() {
         if (!currentImg) return;
-
-        // Vẽ lại ảnh gốc
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
-
-        // Định dạng lại ngày hiển thị sang kiểu Việt Nam (dd/mm/yyyy) từ ô chọn ngày
         let dateStr = '';
-        if (dateInput.value) {
-            const [y, m, d] = dateInput.value.split('-');
-            dateStr = `${d}/${m}/${y}`;
-        }
-
-        const timeStr = timeInput.value || '--:--';
-        const locationStr = locationInput.value || 'Chưa nhập vị trí';
-
-        // Gộp chuỗi text có sẵn biểu tượng định vị 📍
-        const fullText = `📍 ${timeStr} - ${dateStr} - ${locationStr}`;
-
-        // Tự động điều chỉnh kích thước chữ dựa trên độ phân giải của bức ảnh
-        const fontSize = Math.max(16, Math.floor(canvas.width / 35));
+        if (dateInput.value) { const [y, m, d] = dateInput.value.split('-'); dateStr = `${d}/${m}/${y}`; }
+        const fullText = `📍 ${timeInput.value || '--:--'} - ${dateStr} ${locationInput.value ? '- ' + locationInput.value : ''}`;
+        const fontSize = parseInt(zoomInput.value);
         ctx.font = `bold ${fontSize}px Arial`;
-        const textMetrics = ctx.measureText(fullText);
-        const textWidth = textMetrics.width;
-        const textHeight = fontSize;
-
-        const padding = fontSize * 0.6;
-        const style = styleSelect.value;
-
-        let x = padding;
-        let y = canvas.height - padding - textHeight;
-
-        // Tính toán tọa độ dựa trên Kiểu chọn (Vị trí hiển thị)
-        if (style === 'bottom-left') {
-            x = padding;
-            y = canvas.height - padding;
-        } else if (style === 'bottom-right') {
-            x = canvas.width - textWidth - padding * 2;
-            y = canvas.height - padding;
-        } else if (style === 'top-left') {
-            x = padding;
-            y = textHeight + padding;
-        } else if (style === 'top-right') {
-            x = canvas.width - textWidth - padding * 2;
-            y = textHeight + padding;
-        }
-
-        // Vẽ nền đen mờ cho chữ nổi bật, dễ đọc trên mọi nền ảnh
+        const textMetrics = ctx.measureText(fullText), textWidth = textMetrics.width, textHeight = fontSize, padding = fontSize * 0.6;
+        let x = padding, y = canvas.height - padding;
+        if (styleSelect.value === 'bottom-right') { x = canvas.width - textWidth - padding * 2; }
+        else if (styleSelect.value === 'top-left') { y = textHeight + padding; }
+        else if (styleSelect.value === 'top-right') { x = canvas.width - textWidth - padding * 2; y = textHeight + padding; }
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(x - padding/2, y - textHeight - padding/2, textWidth + padding, textHeight + padding);
-
-        // Vẽ chữ màu trắng
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(fullText, x, y);
     }
-
     function downloadImage() {
         if (!currentImg) return;
-        const link = document.createElement('a');
-        link.download = `anh_dong_dau_${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const link = document.createElement('a'); link.download = `anh_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
     }
 </script>
-
 </body>
 </html>
