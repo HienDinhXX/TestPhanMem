@@ -280,6 +280,22 @@
         const btnCamera = document.getElementById('btnCamera');
 
         const locationInput = document.getElementById('locationInput');
+
+        const LOCATION_STORAGE_KEY = 'watermark_saved_location';
+
+// Khôi phục vị trí đã lưu khi mở ứng dụng
+const savedLocation = localStorage.getItem(LOCATION_STORAGE_KEY);
+
+if (savedLocation !== null) {
+    locationInput.value = savedLocation;
+}
+
+// Tự động lưu mỗi khi người dùng nhập hoặc thay đổi vị trí
+locationInput.addEventListener('input', () => {
+    localStorage.setItem(LOCATION_STORAGE_KEY, locationInput.value);
+});
+
+        
         const timeInput = document.getElementById('timeInput');
         const timeFormatSelect = document.getElementById('timeFormatSelect');
         const dateInput = document.getElementById('dateInput');
