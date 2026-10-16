@@ -162,7 +162,7 @@
 
         <!-- Chọn ảnh và tùy chỉnh dấu trong cùng một khung -->
         <section class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 custom-shadow text-sm">
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">1. Chọn ảnh & tùy chỉnh dấu</h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Chọn ảnh & tùy chỉnh dấu</h2>
             <div class="grid grid-cols-2 gap-2">
                 <!-- Inputs ẩn -->
                 <input type="file" id="fileGallery" accept="image/*" class="hidden">
@@ -184,8 +184,6 @@
                 </button>
             </div>
             <div class="stamp-settings-section">
-                <h3 class="text-sm font-semibold text-slate-600 stamp-settings-heading">Tùy chỉnh thông tin dấu</h3>
-            
             <div class="stamp-settings-list">
                 <!-- Dòng 1: Vị trí / Địa điểm -->
                 <div>
@@ -231,20 +229,13 @@
                     </div>
                 </div>
 
-                <p class="text-sm text-slate-500 leading-snug">Mẹo: Sau khi tải ảnh, nhấn giữ trực tiếp vào dấu trên ảnh và kéo đến vị trí bạn muốn.</p>
-
                 <!-- Kích thước Zoom chữ -->
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <label for="zoomRange" class="text-sm font-medium text-slate-700">Kích thước Zoom chữ</label>
+                        <label for="zoomRange" class="text-sm font-medium text-slate-700">Cỡ chữ</label>
                         <span id="zoomValue" class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">150%</span>
                     </div>
                     <input type="range" id="zoomRange" min="50" max="300" value="150" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                    <div class="flex justify-between text-[11px] text-slate-400 mt-1">
-                        <span>Nhỏ (50%)</span>
-                        <span>Chuẩn (100%)</span>
-                        <span>Lớn (300%)</span>
-                    </div>
                 </div>
             </div>
             </div>
@@ -253,7 +244,7 @@
         <!-- Khu vực xem trước Canvas & Nút tải xuống -->
         <section class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 custom-shadow flex flex-col items-center">
             <div class="w-full flex items-center justify-between mb-4">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">3. Xem trước & Tải ảnh</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Thêm Vị trí & Tải ảnh</h2>
                 <span id="resolutionBadge" class="text-xs text-slate-400 font-mono">Chưa chọn ảnh</span>
             </div>
 
