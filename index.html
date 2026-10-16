@@ -90,12 +90,17 @@
                     <!-- Thời gian & Ngày tháng -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="timeInput" class="block text-sm font-medium text-slate-700 mb-1">Giờ (12h SA/CH)</label>
-                            <input type="text" id="timeInput" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" placeholder="09:30 CH">
+                            <label for="timeFormatSelect" class="block text-sm font-medium text-slate-700 mb-1">Định dạng giờ</label>
+                            <select id="timeFormatSelect" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white text-slate-800 text-sm outline-none transition">
+                                <option value="12" selected>12 tiếng (SA/CH)</option>
+                                <option value="24">24 tiếng</option>
+                            </select>
+                            <label for="timeInput" class="block text-sm font-medium text-slate-700 mt-3 mb-1">Giờ</label>
+                            <input type="time" id="timeInput" step="60" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn giờ">
                         </div>
                         <div>
-                            <label for="dateInput" class="block text-sm font-medium text-slate-700 mb-1">Ngày (DD/MM/YYYY)</label>
-                            <input type="text" id="dateInput" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" placeholder="09/10/2026">
+                            <label for="dateInput" class="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
+                            <input type="date" id="dateInput" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn ngày">
                         </div>
                     </div>
                 </div>
@@ -106,8 +111,8 @@
                     <div>
                         <label for="positionSelect" class="block text-sm font-medium text-slate-700 mb-1">Vị trí hiển thị dấu</label>
                         <select id="positionSelect" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white text-slate-800 text-sm outline-none transition">
-                            <option value="bottom-left" selected>Dưới cùng - Trái (Bottom-Left)</option>
-                            <option value="bottom-right">Dưới cùng - Phải (Bottom-Right)</option>
+                            <option value="bottom-left">Dưới cùng - Trái (Bottom-Left)</option>
+                            <option value="bottom-right" selected>Dưới cùng - Phải (Bottom-Right)</option>
                             <option value="top-left">Trên cùng - Trái (Top-Left)</option>
                             <option value="top-right">Trên cùng - Phải (Top-Right)</option>
                         </select>
@@ -170,6 +175,7 @@
 
         const locationInput = document.getElementById('locationInput');
         const timeInput = document.getElementById('timeInput');
+        const timeFormatSelect = document.getElementById('timeFormatSelect');
         const dateInput = document.getElementById('dateInput');
         const positionSelect = document.getElementById('positionSelect');
         const zoomRange = document.getElementById('zoomRange');
@@ -185,26 +191,35 @@
         let loadedImage = null; // Lưu đối tượng Image
         let downloadCounter = 1; // Biến đếm từ 1 đến 100
 
-        // Initialize default time & date
+        // Khởi tạo giờ/ngày theo định dạng picker của trình duyệt.
+        // Giá trị nội bộ: giờ HH:mm, ngày YYYY-MM-DD; khi đóng dấu sẽ định dạng theo kiểu Việt Nam.
         function initDateTime() {
             const now = new Date();
-            
-            // Format 12h: HH:mm SA/CH
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeInput.value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatTimeForStamp(value) {
+            if (!value) return '';
+            const parts = value.split(':');
+            if (parts.length < 2) return value;
+            let hours = Number(parts[0]);
+            const minutes = parts[1];
+
+            if (timeFormatSelect.value === '24') {
+                return `${String(hours).padStart(2, '0')}:${minutes}`;
+            }
+
             const ampm = hours >= 12 ? 'CH' : 'SA';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            const strTime = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+            hours = hours % 12 || 12;
+            return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
 
-            // Format DD/MM/YYYY
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            const strDate = `${day}/${month}/${year}`;
-
-            timeInput.value = strTime;
-            dateInput.value = strDate;
+        function formatDateForStamp(value) {
+            if (!value) return '';
+            const parts = value.split('-');
+            if (parts.length !== 3) return value;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
 
         // Sự kiện click nút bấm nguồn ảnh
@@ -281,7 +296,9 @@
         // Đăng ký sự kiện thay đổi input để render Real-time
         [locationInput, timeInput, dateInput, positionSelect].forEach(element => {
             element.addEventListener('input', renderWatermark);
+            element.addEventListener('change', renderWatermark);
         });
+        timeFormatSelect.addEventListener('change', renderWatermark);
 
         zoomRange.addEventListener('input', (e) => {
             zoomValue.textContent = `${e.target.value}%`;
@@ -338,7 +355,7 @@
             const userZoom = parseFloat(zoomRange.value) / 100;
             const baseFontSize = Math.max(16, Math.round(minDimension * 0.028 * userZoom));
             
-            const line1Text = `${timeInput.value.trim()}  ${dateInput.value.trim()}`;
+            const line1Text = `${formatTimeForStamp(timeInput.value)}  ${formatDateForStamp(dateInput.value)}`.trim();
             const line2Text = locationInput.value.trim();
 
             const fontName = 'Arial, sans-serif';
@@ -420,9 +437,10 @@
          */
         function generateFileName() {
             // Lấy thời gian & ngày tháng từ ô input (làm sạch loại bỏ ký tự đặc biệt)
-            const timeRaw = timeInput.value.replace(/[^0-9]/g, ''); // Ví dụ "09:30 CH" -> "0930"
-            const dateRaw = dateInput.value.replace(/[^0-9]/g, ''); // Ví dụ "09/10/2026" -> "09102026"
-            const dateTimeStr = (timeRaw + dateRaw) || '000000000000';
+            const timeRaw = timeInput.value.replace(/[^0-9]/g, ''); // HH:mm -> HHmm
+            const dateRaw = dateInput.value.replace(/[^0-9]/g, ''); // YYYY-MM-DD -> YYYYMMDD
+            const dateForFilename = dateRaw.length === 8 ? `${dateRaw.slice(6, 8)}${dateRaw.slice(4, 6)}${dateRaw.slice(0, 4)}` : '';
+            const dateTimeStr = (timeRaw + dateForFilename) || '000000000000';
 
             // Tích tắc miligiây hiện tại
             const now = new Date();
