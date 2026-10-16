@@ -20,10 +20,10 @@
         .custom-shadow {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
-        /* Bố cục mục 2: ô giờ/ngày rộng 2 phần, ô chọn rộng 1 phần */
+        /* Bố cục dòng 4 mục 2: hai ô chọn chia đều, tránh tràn trên iPhone */
         .settings-two-column {
             display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 8px;
             width: 100%;
             min-width: 0;
@@ -137,26 +137,26 @@
                     </div>
                 </div>
 
-                <!-- Dòng 2: Giờ và định dạng giờ -->
+                <!-- Dòng 2: Giờ -->
+                <div>
+                    <label for="timeInput" class="block text-sm font-medium text-slate-700 mb-1">Giờ</label>
+                    <input type="time" id="timeInput" step="60" class="block box-border min-w-0 w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn giờ">
+                </div>
+
+                <!-- Dòng 3: Ngày -->
+                <div>
+                    <label for="dateInput" class="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
+                    <input type="date" id="dateInput" class="block box-border min-w-0 w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn ngày">
+                </div>
+
+                <!-- Dòng 4: Định dạng giờ và vị trí hiển thị dấu -->
                 <div class="settings-two-column">
                     <div class="min-w-0">
-                        <label for="timeInput" class="block text-sm font-medium text-slate-700 mb-1">Giờ</label>
-                        <input type="time" id="timeInput" step="60" class="block box-border min-w-0 w-full px-2 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn giờ">
-                    </div>
-                    <div class="min-w-0">
-                        <label for="timeFormatSelect" class="block text-sm font-medium text-slate-700 mb-1">Định dạng giờ</label>
+                        <label for="timeFormatSelect" class="block text-sm font-medium text-slate-700 mb-1">Định dạng</label>
                         <select id="timeFormatSelect" class="block box-border min-w-0 w-full px-2 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white text-slate-800 text-sm outline-none transition">
                             <option value="12" selected>12 tiếng</option>
                             <option value="24">24 tiếng</option>
                         </select>
-                    </div>
-                </div>
-
-                <!-- Dòng 3: Ngày và vị trí hiển thị dấu -->
-                <div class="settings-two-column">
-                    <div class="min-w-0">
-                        <label for="dateInput" class="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
-                        <input type="date" id="dateInput" class="block box-border min-w-0 w-full px-2 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn ngày">
                     </div>
                     <div class="min-w-0">
                         <label for="positionSelect" class="block text-sm font-medium text-slate-700 mb-1">Hiển thị</label>
