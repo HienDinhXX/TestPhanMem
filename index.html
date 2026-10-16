@@ -20,6 +20,33 @@
         .custom-shadow {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
+        /* Tối ưu ô chọn giờ/ngày cho màn hình iPhone, tránh tràn và chồng lấn */
+        #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
+            box-sizing: border-box;
+            display: block;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            font-size: 13px;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+        .settings-two-column {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 8px;
+            min-width: 0;
+        }
+        .settings-two-column > div { min-width: 0; overflow: hidden; }
+        .settings-two-column label {
+            font-size: 12px;
+            line-height: 1.35;
+            min-height: 2.7em;
+        }
+        @media (max-width: 430px) {
+            #timeInput, #dateInput, #timeFormatSelect, #positionSelect { font-size: 12px; }
+            .settings-two-column { gap: 7px; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
@@ -86,7 +113,7 @@
                 </div>
 
                 <!-- Dòng 2: Giờ và định dạng giờ -->
-                <div class="grid grid-cols-2 gap-3 min-w-0">
+                <div class="settings-two-column">
                     <div class="min-w-0">
                         <label for="timeInput" class="block text-sm font-medium text-slate-700 mb-1">Giờ</label>
                         <input type="time" id="timeInput" step="60" class="block box-border min-w-0 w-full px-2 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn giờ">
@@ -101,7 +128,7 @@
                 </div>
 
                 <!-- Dòng 3: Ngày và vị trí hiển thị dấu -->
-                <div class="grid grid-cols-2 gap-3 min-w-0">
+                <div class="settings-two-column">
                     <div class="min-w-0">
                         <label for="dateInput" class="block text-sm font-medium text-slate-700 mb-1">Ngày</label>
                         <input type="date" id="dateInput" class="block box-border min-w-0 w-full px-2 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm outline-none transition" aria-label="Chọn ngày">
