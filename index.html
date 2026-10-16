@@ -20,48 +20,57 @@
         .custom-shadow {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
-        /* Tối ưu ô chọn giờ/ngày cho màn hình iPhone, tránh tràn và chồng lấn */
+        /* Bố cục mục 2: ô giờ/ngày rộng 2 phần, ô chọn rộng 1 phần */
+        .settings-two-column {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            gap: 8px;
+            width: 100%;
+            min-width: 0;
+            align-items: start;
+        }
+        .settings-two-column > div {
+            min-width: 0;
+        }
+        .settings-two-column label {
+            display: block;
+            font-size: 12px;
+            line-height: 1.3;
+            min-height: 32px;
+            margin-bottom: 5px;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
         #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
             box-sizing: border-box;
             display: block;
             width: 100%;
             min-width: 0;
             max-width: 100%;
-            font-size: 13px;
-            padding-left: 4px;
-            padding-right: 4px;
-            border-radius: 12px;
             height: 44px;
+            margin: 0;
             border: 1px solid #cbd5e1;
+            border-radius: 12px;
             background-color: #fff;
+            color: #1e293b;
+            font-size: 14px;
+            line-height: normal;
+        }
+        #timeInput, #dateInput {
+            padding: 0 8px;
             -webkit-appearance: auto;
             appearance: auto;
         }
-        #timeInput, #dateInput {
-            overflow: visible;
-            text-overflow: clip;
-        }
-        .settings-two-column {
-            display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-            gap: 8px;
-            min-width: 0;
-        }
-        .settings-two-column > div { min-width: 0; overflow: visible; }
-        .settings-two-column label {
-            font-size: 12px;
-            line-height: 1.35;
-            min-height: 2.7em;
+        #timeFormatSelect, #positionSelect {
+            padding: 0 5px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
         @media (max-width: 430px) {
-            #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
-                font-size: 12px;
-                padding-left: 3px;
-                padding-right: 3px;
-                height: 44px;
-            }
             .settings-two-column { gap: 7px; }
-            .settings-two-column label { overflow-wrap: anywhere; }
+            .settings-two-column label { font-size: 12px; }
+            #timeInput, #dateInput { font-size: 14px; padding-left: 5px; padding-right: 5px; }
+            #timeFormatSelect, #positionSelect { font-size: 12px; padding-left: 3px; padding-right: 3px; }
         }
     </style>
 </head>
