@@ -116,6 +116,7 @@
                             <option value="top-left">Trên cùng - Trái (Top-Left)</option>
                             <option value="top-right">Trên cùng - Phải (Top-Right)</option>
                         </select>
+                        <p class="text-xs text-slate-500 mt-2">Mẹo: Sau khi tải ảnh, nhấn giữ trực tiếp vào dấu trên ảnh và kéo đến vị trí bạn muốn.</p>
                     </div>
 
                     <!-- Kích thước Zoom chữ -->
@@ -189,6 +190,10 @@
         const resolutionBadge = document.getElementById('resolutionBadge');
 
         let loadedImage = null; // Lưu đối tượng Image
+        let customPosition = null; // Vị trí kéo thả tự do (tọa độ ảnh gốc)
+        let lastStampBounds = null;
+        let dragOffset = { x: 0, y: 0 };
+        let isDraggingStamp = false;
         let downloadCounter = 1; // Biến đếm từ 1 đến 100
 
         // Khởi tạo giờ/ngày theo định dạng picker của trình duyệt.
@@ -257,6 +262,7 @@
 
                     // Hiện canvas, ẩn placeholder
                     canvas.classList.remove('hidden');
+                    canvas.style.cursor = 'grab';
                     canvasPlaceholder.classList.add('hidden');
                     btnDownload.disabled = false;
 
@@ -294,9 +300,13 @@
         });
 
         // Đăng ký sự kiện thay đổi input để render Real-time
-        [locationInput, timeInput, dateInput, positionSelect].forEach(element => {
+        [locationInput, timeInput, dateInput].forEach(element => {
             element.addEventListener('input', renderWatermark);
             element.addEventListener('change', renderWatermark);
+        });
+        positionSelect.addEventListener('change', () => {
+            customPosition = null; // Chọn góc sẽ quay về vị trí góc đã chọn
+            renderWatermark();
         });
         timeFormatSelect.addEventListener('change', renderWatermark);
 
@@ -376,24 +386,37 @@
 
             const position = positionSelect.value;
             let startY;
-            const isLeft = position.includes('left');
+            let isLeft = position.includes('left');
             const isTop = position.includes('top');
+            let iconX;
 
-            if (isTop) {
-                startY = margin;
+            if (customPosition) {
+                // Khi kéo tự do, điểm kéo là góc trái của biểu tượng ghim.
+                iconX = Math.max(0, Math.min(width - iconSize, customPosition.x));
+                startY = Math.max(0, Math.min(height - totalTextHeight, customPosition.y));
+                isLeft = iconX < width / 2;
             } else {
-                startY = height - margin - totalTextHeight;
+                startY = isTop ? margin : height - margin - totalTextHeight;
+                iconX = isLeft ? margin : width - margin - iconSize;
             }
 
-            let iconX, textX;
-
+            let textX;
             if (isLeft) {
-                iconX = margin;
                 textX = iconX + iconSize + spacing;
             } else {
-                iconX = width - margin - iconSize;
                 textX = iconX - spacing;
             }
+
+            // Lưu vùng dấu để chỉ kéo khi người dùng chạm/nhấn vào dấu.
+            const groupLeft = isLeft ? iconX : iconX - spacing - maxTextWidth;
+            const groupRight = isLeft ? iconX + iconSize + spacing + maxTextWidth : iconX + iconSize;
+            lastStampBounds = {
+                left: Math.max(0, groupLeft - baseFontSize),
+                right: Math.min(width, groupRight + baseFontSize),
+                top: Math.max(0, startY - baseFontSize),
+                bottom: Math.min(height, startY + totalTextHeight + baseFontSize),
+                iconSize, totalTextHeight
+            };
 
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
@@ -430,6 +453,47 @@
             const iconY = startY + (totalTextHeight - iconSize) / 2;
             drawLocationPin(ctx, iconX, iconY, iconSize);
         }
+
+        // Kéo dấu trực tiếp trên ảnh xem trước.
+        function canvasPointFromEvent(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * (canvas.width / rect.width),
+                y: (event.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        canvas.style.touchAction = 'none';
+        canvas.style.cursor = 'default';
+
+        canvas.addEventListener('pointerdown', (event) => {
+            if (!loadedImage || !lastStampBounds) return;
+            const point = canvasPointFromEvent(event);
+            const b = lastStampBounds;
+            if (point.x >= b.left && point.x <= b.right && point.y >= b.top && point.y <= b.bottom) {
+                isDraggingStamp = true;
+                customPosition = customPosition || { x: (positionSelect.value.includes('left') ? Math.max(0, Math.min(canvas.width, canvas.width * 0.035)) : canvas.width - Math.max(20, Math.round(Math.min(canvas.width, canvas.height) * 0.035)) - b.iconSize), y: positionSelect.value.includes('top') ? Math.max(20, Math.round(Math.min(canvas.width, canvas.height) * 0.035)) : canvas.height - Math.max(20, Math.round(Math.min(canvas.width, canvas.height) * 0.035)) - b.totalTextHeight };
+                dragOffset = { x: point.x - customPosition.x, y: point.y - customPosition.y };
+                canvas.setPointerCapture(event.pointerId);
+                canvas.style.cursor = 'grabbing';
+                event.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('pointermove', (event) => {
+            if (!isDraggingStamp || !loadedImage) return;
+            const point = canvasPointFromEvent(event);
+            customPosition = { x: point.x - dragOffset.x, y: point.y - dragOffset.y };
+            renderWatermark();
+        });
+
+        function stopStampDrag() {
+            if (!isDraggingStamp) return;
+            isDraggingStamp = false;
+            canvas.style.cursor = 'grab';
+        }
+        canvas.addEventListener('pointerup', stopStampDrag);
+        canvas.addEventListener('pointercancel', stopStampDrag);
 
         /**
          * Hàm tạo tên file theo chuẩn yêu cầu:
