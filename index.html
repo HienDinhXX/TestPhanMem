@@ -20,76 +20,121 @@
         .custom-shadow {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
-        /* Bố cục dòng 4 mục 2: hai ô chọn chia đều, tránh tràn trên iPhone */
-        .settings-two-column {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 8px;
-            width: 100%;
-            min-width: 0;
-            align-items: start;
+        /* Form cài đặt kiểu nhãn bên trái, ô nhập bên phải */
+        .stamp-settings-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
         }
-        .settings-two-column > div {
-            min-width: 0;
+        .stamp-settings-heading {
+            margin-bottom: 6px;
+            line-height: 1.25;
         }
-        .settings-two-column label {
-            display: block;
-            font-size: 12px;
+        .stamp-settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .stamp-settings-list > div:not(.settings-two-column) {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin: 0;
+        }
+        .stamp-settings-list > div > label,
+        .stamp-settings-list > div:not(.settings-two-column) label {
+            flex: 0 0 30%;
+            width: 30%;
+            min-width: 72px;
+            margin: 0;
+            color: #475569;
+            font-size: 14px;
             line-height: 1.3;
-            min-height: 32px;
-            margin-bottom: 5px;
-            overflow-wrap: normal;
-            word-break: normal;
+            font-weight: 400;
         }
-        #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
+        .stamp-settings-list .relative {
+            flex: 1 1 auto;
+            width: 70%;
+            min-width: 0;
+        }
+        #locationInput, #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
             box-sizing: border-box;
             display: block;
             width: 100%;
             min-width: 0;
             max-width: 100%;
-            height: 44px;
+            height: 38px;
             margin: 0;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
+            border: 0;
+            border-radius: 0;
+            border-bottom: 1px solid #cbd5e1;
             background-color: #fff;
-            color: #1e293b;
-            font-size: 14px;
-            line-height: normal;
-            font-family: 'Inter', sans-serif;
+            color: #334155;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.2;
+            box-shadow: none;
         }
-        #timeInput, #dateInput {
-            padding: 0 14px;
-            -webkit-appearance: auto;
-            appearance: auto;
-        }
+        #locationInput { padding: 0 34px 0 8px; }
+        #timeInput, #dateInput { padding: 0 8px; text-align: right; }
         #timeFormatSelect, #positionSelect {
-            padding: 0 14px;
+            padding: 0 24px 0 8px;
+            text-align: right;
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        /* Giao diện gọn cho mục 1, tối ưu khoảng cách trên iPhone */
-        .stamp-settings-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
-        .stamp-settings-heading { margin-bottom: 8px; line-height: 1.25; }
-        .stamp-settings-list { display: flex; flex-direction: column; gap: 8px; }
-        .stamp-settings-list > div { margin: 0; min-width: 0; }
-        .stamp-settings-list label { display: block; margin-bottom: 3px; font-size: 14px; line-height: 1.2; }
-        #locationInput, #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-            font-size: 15px !important;
-            line-height: 1.2;
-            box-sizing: border-box;
+        #locationInput:focus, #timeInput:focus, #dateInput:focus,
+        #timeFormatSelect:focus, #positionSelect:focus {
+            outline: none;
+            border-bottom: 2px solid #2563eb;
         }
-        #locationInput { height: 42px; padding-top: 8px; padding-bottom: 8px; }
-        #timeInput, #dateInput { height: 42px; padding: 0 12px; text-align: left; -webkit-appearance: none; appearance: none; }
-        #timeFormatSelect, #positionSelect { height: 42px; padding: 0 10px; }
-        .settings-two-column { gap: 8px; }
-        .settings-two-column label { min-height: 0; margin-bottom: 3px; line-height: 1.2; font-size: 14px; }
-        .stamp-settings-list p { margin-top: 0; margin-bottom: 0; font-size: 12px; line-height: 1.35; }
+        .settings-two-column {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
+            gap: 0;
+        }
+        .settings-two-column > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .settings-two-column label {
+            flex: 0 0 30%;
+            width: 30%;
+            min-width: 72px;
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.3;
+            color: #475569;
+            font-weight: 400;
+        }
+        .stamp-settings-list p {
+            display: block;
+            padding: 8px 0;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.35;
+        }
         .stamp-settings-list input[type="range"] { margin-top: 3px; }
         @media (max-width: 430px) {
-            .settings-two-column { gap: 8px; }
-            .settings-two-column label { font-size: 14px; }
-            #timeInput, #dateInput { font-size: 15px !important; }
+            .stamp-settings-list > div:not(.settings-two-column),
+            .settings-two-column > div { gap: 8px; }
+            .stamp-settings-list > div > label,
+            .stamp-settings-list > div:not(.settings-two-column) label,
+            .settings-two-column label { flex-basis: 28%; width: 28%; min-width: 66px; font-size: 13px; }
+            #locationInput, #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
+                font-size: 14px !important;
+            }
         }
     </style>
 </head>
