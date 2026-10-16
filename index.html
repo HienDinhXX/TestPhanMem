@@ -75,12 +75,28 @@
             background-color: #fff;
             color: #334155;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-            font-size: 14px !important;
-            line-height: 1.2;
+            font-size: 16px !important; /* iOS: >=16px để tránh tự zoom khi chạm ô nhập */
+            line-height: normal;
+            vertical-align: middle;
             box-shadow: none;
         }
         #locationInput { padding: 0 34px 0 8px; }
-        #timeInput, #dateInput { padding: 0 8px; text-align: right; }
+        #timeInput, #dateInput {
+            padding: 0 8px;
+            text-align: right;
+            -webkit-appearance: auto;
+            appearance: auto;
+            align-self: center;
+        }
+        /* Căn phần giá trị giờ/ngày vào giữa chiều cao ô trên Safari iPhone */
+        #timeInput::-webkit-date-and-time-value,
+        #dateInput::-webkit-date-and-time-value {
+            text-align: right;
+            min-height: 1em;
+            line-height: normal;
+            padding: 0;
+            margin: 0;
+        }
         #timeFormatSelect, #positionSelect {
             padding: 0 24px 0 8px;
             text-align: right;
@@ -133,7 +149,7 @@
             .stamp-settings-list > div:not(.settings-two-column) label,
             .settings-two-column label { flex-basis: 28%; width: 28%; min-width: 66px; font-size: 13px; }
             #locationInput, #timeInput, #dateInput, #timeFormatSelect, #positionSelect {
-                font-size: 14px !important;
+                font-size: 16px !important; /* Ngăn Safari iOS phóng to khi nhập liệu */
             }
         }
     </style>
