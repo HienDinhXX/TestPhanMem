@@ -409,39 +409,8 @@ locationInput.addEventListener('input', () => {
                         btnGetLocation.classList.remove('animate-spin', 'text-blue-600');
                         const lat = pos.coords.latitude.toFixed(3);
                         const lng = pos.coords.longitude.toFixed(3);
-                        
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-
-locationInput.value = 'Đang tìm tên địa điểm...';
-
-fetch(
-    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`
-)
-.then(response => {
-    if (!response.ok) {
-        throw new Error('Không tìm được địa điểm');
-    }
-    return response.json();
-})
-.then(data => {
-    locationInput.value =
-        data.name ||
-        data.address?.suburb ||
-        data.address?.village ||
-        data.address?.town ||
-        data.address?.city ||
-        data.address?.county ||
-        data.display_name ||
-        'Không xác định được địa điểm';
-
-    renderWatermark();
-})
-.catch(() => {
-    locationInput.value = 'Không lấy được tên địa điểm';
-    renderWatermark();
-});
-
+                        locationInput.value = `Tọa độ: ${lat}, ${lng}`;
+                        renderWatermark();
                     },
                     (err) => {
                         btnGetLocation.classList.remove('animate-spin', 'text-blue-600');
