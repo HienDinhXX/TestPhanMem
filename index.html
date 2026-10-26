@@ -218,8 +218,7 @@ nav button.active span{display:inline}
 
 <div id="app">
   <section class="tab active" id="tab-assets">
-    <h1>Tài sản</h1>
-    <div class="sub">Vàng và sổ tiết kiệm của bạn</div>
+    <h1>Quản Lý Tài Sản</h1>
     <div id="sections"></div>
     <div class="hero total">
       <div class="lbl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Tổng tài sản</div>
@@ -228,8 +227,7 @@ nav button.active span{display:inline}
   </section>
 
   <section class="tab" id="tab-stats">
-    <h1>Thống kê</h1>
-    <div class="sub">Tỉ lệ cơ cấu tài sản</div>
+    <h1>Tỉ lệ cơ cầu tài sản</h1>
     <div class="card" id="donutCard"></div>
     <div class="card">
       <div class="trow h"><div class="c1">Loại tài sản</div><div class="c2">Tổng giá trị</div><div class="c3">Tỉ lệ</div></div>
@@ -248,7 +246,6 @@ nav button.active span{display:inline}
         <button data-theme="dark" id="thDark"></button>
         <button data-theme="light" id="thLight"></button>
       </div>
-      <div class="hint" style="margin:12px 0 0">Lựa chọn được ghi nhớ trên thiết bị này.</div>
     </div>
 
     <div class="card">
@@ -261,9 +258,8 @@ nav button.active span{display:inline}
     </div>
 
     <div class="card">
-      <h3><span class="ic" style="background:var(--g-hard)" id="icLock"></span>Tự động khóa</h3>
+      <h3><span class="ic" style="background:var(--g-hard)" id="icLock"></span>Tự động khóa khi không thao tác</h3>
       <div class="field" style="margin-bottom:0">
-        <label for="autoLockSelect">Khóa sau khi không thao tác</label>
         <select id="autoLockSelect">
           <option value="0">Tắt tự động khóa</option>
           <option value="1">1 phút</option><option value="3">3 phút</option><option value="5">5 phút</option>
