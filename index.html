@@ -3,246 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng Dụng Quản Lý Ghi Nợ v2</title>
+    <title>Sổ Ghi Nợ</title>
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --background-color: #f3f4f6;
-            --card-color: #ffffff;
-            --text-color: #1f2937;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
+            --primary: #4f46e5;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
         }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             margin: 0;
             padding: 20px;
         }
-
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
-
         h1 {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 30px;
+            color: var(--primary);
         }
-
         .grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
         }
-
-        @media (min-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr 2fr;
-            }
+        @media (min-width: 992px) {
+            .grid { grid-template-columns: 1fr 2.5fr; }
         }
-
         .card {
-            background: var(--card-color);
+            background: var(--card);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            height: fit-content;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 10px;
-            color: #374151;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
-            font-size: 0.9rem;
         }
-
         input {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
-            font-size: 0.95rem;
         }
-
-        input:read-only {
-            background-color: #f3f4f6;
-            color: #4b5563;
+        input[readonly] {
+            background: #e9ecef;
+            color: var(--primary);
             font-weight: bold;
         }
-
         button {
             width: 100%;
             padding: 12px;
-            background-color: var(--primary-color);
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
             font-weight: bold;
+            cursor: pointer;
         }
-
-        button:hover {
-            background-color: #4338ca;
-        }
-
         .table-responsive {
             overflow-x: auto;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
-
         th, td {
-            padding: 12px 10px;
+            padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 0.9rem;
+            border-bottom: 1px solid #ddd;
         }
-
         th {
-            background-color: #f8fafc;
-            color: #4b5563;
-            font-weight: 600;
+            background: #f8fafc;
+            color: var(--primary);
         }
-
-        /* Trạng thái */
-        .status-badge {
+        .badge {
             padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            border-radius: 12px;
+            font-size: 12px;
             font-weight: bold;
-            display: inline-block;
-            cursor: pointer;
-            user-select: none;
         }
-
-        .status-unpaid {
-            background-color: #fef3c7;
-            color: #d97706;
-            border: 1px solid #fde68a;
-        }
-
-        .status-paid {
-            background-color: #d1fae5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
-            text-decoration: line-through;
-        }
-
-        .actions {
+        .badge-unpaid { background: #fee2e2; color: #ef4444; }
+        .badge-paid { background: #dcfce7; color: #22c55e; }
+        .flex-btns {
             display: flex;
             gap: 5px;
         }
-
-        .btn-action {
+        .btn-sm {
             padding: 6px 10px;
-            font-size: 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            border: none;
-            color: white;
-            font-weight: normal;
+            font-size: 12px;
             width: auto;
         }
-
-        .btn-status {
-            background-color: #6b7280;
-        }
-        .btn-status:hover { background-color: #4b5563; }
-
-        .btn-delete {
-            background-color: #ef4444;
-        }
-        .btn-delete:hover { background-color: #dc2626; }
+        .btn-status { background: #0ea5e9; }
+        .btn-delete { background: #ef4444; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📝 Quản Lý Sổ Nợ Cá Nhân</h1>
-    
+    <h1>📝 Sổ Ghi Nợ Thông Minh</h1>
     <div class="grid">
-        <!-- FORM NHẬP THÔNG TIN -->
         <div class="card">
-            <h2>Thêm Khoản Nợ Mới</h2>
+            <h2>Thêm Khoản Nợ</h2>
             <form id="debtForm">
                 <div class="form-group">
-                    <label for="borrowerName">Tên người vay:</label>
-                    <input type="text" id="borrowerName" required placeholder="Ví dụ: Nguyễn Văn A">
+                    <label>Tên người vay:</label>
+                    <input type="text" id="borrowerName" required>
                 </div>
-                
                 <div class="form-group">
-                    <label for="loanAmount">Số tiền vay (VNĐ):</label>
-                    <input type="number" id="loanAmount" required placeholder="Ví dụ: 10000000">
+                    <label>Số tiền vay (VNĐ):</label>
+                    <input type="number" id="loanAmount" required>
                 </div>
-
                 <div class="form-group">
-                    <label for="interestRate">Lãi suất (% / năm):</label>
-                    <input type="number" id="interestRate" step="0.01" required placeholder="Ví dụ: 5.5">
+                    <label>Lãi suất (%/năm):</label>
+                    <input type="number" id="interestRate" step="0.01" required>
                 </div>
-
                 <div class="form-group">
-                    <label for="loanDate">Ngày vay:</label>
+                    <label>Ngày vay:</label>
                     <input type="date" id="loanDate" required>
                 </div>
-
                 <div class="form-group">
-                    <label for="returnDate">Ngày dự kiến trả:</label>
+                    <label>Ngày dự kiến trả:</label>
                     <input type="date" id="returnDate" required>
                 </div>
-
                 <div class="form-group">
-                    <label id="dayCountLabel" style="color: #6b7280; font-weight: normal; font-style: italic; margin-bottom: 10px;">Số ngày vay: 0 ngày</label>
-                    <label for="totalExpected">Tổng số tiền dự kiến trả:</label>
-                    <input type="text" id="totalExpected" readonly placeholder="Tự động tính toán...">
+                    <label>Tổng dự kiến trả:</label>
+                    <input type="text" id="totalExpected" readonly>
                 </div>
-
                 <button type="submit">Thêm Vào Sổ Nợ</button>
             </form>
         </div>
 
-        <!-- DANH SÁCH SỔ NỢ -->
         <div class="card">
-            <h2>Danh Sách Nợ</h2>
+            <h2>Danh Sách Công Nợ</h2>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>Người vay</th>
                             <th>Ngày vay</th>
-                            <th>Số tiền gốc</th>
+                            <th>Gốc</th>
                             <th>Lãi suất</th>
-                            <th>Hạn trả (Số ngày)</th>
-                            <th>Tổng dự kiến</th>
+                            <th>Hạn trả</th>
+                            <th>Tổng trả</th>
                             <th>Trạng thái</th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
-                    <tbody id="debtTableBody">
-                        <!-- Dữ liệu tự động thêm ở đây -->
-                    </tbody>
+                    <tbody id="debtTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -250,58 +167,38 @@
 </div>
 
 <script>
-    // Hàm định dạng tiền tệ VND
-    function formatVND(amount) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-    }
+    const formatVND = num => new Intl.NumberFormat('vi-VN', {
+        style: 'currency', currency: 'VND'
+    }).format(num);
 
     const loanAmountInput = document.getElementById('loanAmount');
     const interestRateInput = document.getElementById('interestRate');
     const loanDateInput = document.getElementById('loanDate');
     const returnDateInput = document.getElementById('returnDate');
     const totalExpectedInput = document.getElementById('totalExpected');
-    const dayCountLabel = document.getElementById('dayCountLabel');
 
-    // Hàm tự động tính toán tổng số tiền trả dựa trên số ngày vay thực tế
     function calculateTotalPayable() {
         const amount = parseFloat(loanAmountInput.value) || 0;
         const rate = parseFloat(interestRateInput.value) || 0;
-        
-        if (!loanDateInput.value || !returnDateInput.value) {
-            dayCountLabel.textContent = "Số ngày vay: 0 ngày";
-            totalExpectedInput.value = '';
-            return 0;
+        const d1 = new Date(loanDateInput.value);
+        const d2 = new Date(returnDateInput.value);
+
+        if (amount > 0 && loanDateInput.value && returnDateInput.value && d2 >= d1) {
+            const diffTime = Math.abs(d2 - d1);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const interest = amount * (rate / 100) * (diffDays / 365);
+            const total = amount + interest;
+            totalExpectedInput.value = formatVND(total);
+            return total;
         }
-
-        const date1 = new Date(loanDateInput.value);
-        const date2 = new Date(returnDateInput.value);
-
-        if (date2 < date1) {
-            dayCountLabel.textContent = "Ngày trả không hợp lệ (nhỏ hơn ngày vay)";
-            totalExpectedInput.value = '';
-            return 0;
-        }
-
-        // Tính khoảng cách ngày
-        const diffTime = date2 - date1;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        dayCountLabel.textContent = `Số ngày vay: ${diffDays} ngày`;
-
-        // Công thức tính lãi suất %/năm dựa trên số ngày thực tế
-        const interest = amount * (rate / 100) * (diffDays / 365);
-        const total = amount + interest;
-
-        totalExpectedInput.value = formatVND(total);
-        return total;
+        totalExpectedInput.value = '';
+        return 0;
     }
 
-    // Gắn sự kiện lắng nghe để cập nhật số tiền ngay lập tức khi người dùng nhập dữ liệu
-    [loanAmountInput, interestRateInput, loanDateInput, returnDateInput].forEach(input => {
-        input.addEventListener('input', calculateTotalPayable);
+    [loanAmountInput, interestRateInput, loanDateInput, returnDateInput].forEach(el => {
+        el.addEventListener('input', calculateTotalPayable);
     });
 
-    // Quản lý lưu trữ bằng LocalStorage
     let debtList = JSON.parse(localStorage.getItem('debtList')) || [];
 
     function saveAndRender() {
@@ -309,19 +206,74 @@
         renderTable();
     }
 
-    // Hiển thị danh sách ra giao diện bảng
     function renderTable() {
         const tbody = document.getElementById('debtTableBody');
         tbody.innerHTML = '';
-
         if (debtList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#888;">Chưa có dữ liệu ghi nợ nào.</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#888;">Chưa có dữ liệu.</td></tr>';
             return;
         }
-
         debtList.forEach((debt, index) => {
             const tr = document.createElement('tr');
+            const isPaid = debt.status === 'paid';
+            const badge = isPaid ? '<span class="badge badge-paid">Đã trả</span>' : '<span class="badge badge-unpaid">Chưa trả</span>';
+            const btnText = isPaid ? 'Chưa trả' : 'Đã trả';
             
-            // Tính lại số ngày vay để hiển thị lên bảng
-            const d1 = new Date(debt.loanDate);
-            const d2 = new Date(debt.returnDate);
+            tr.innerHTML = `
+                <td><strong>${debt.name}</strong></td>
+                <td>${debt.loanDate}</td>
+                <td>${formatVND(debt.amount)}</td>
+                <td>${debt.rate}%</td>
+                <td>${debt.returnDate}</td>
+                <td style="color:#4f46e5;font-weight:bold;">${formatVND(debt.total)}</td>
+                <td>${badge}</td>
+                <td>
+                    <div class="flex-btns">
+                        <button class="btn-sm btn-status" onclick="toggleStatus(${index})">${btnText}</button>
+                        <button class="btn-sm btn-delete" onclick="deleteDebt(${index})">Xóa</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('debtForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const totalPayable = calculateTotalPayable();
+        if (totalPayable === 0) {
+            alert('Ngày dự kiến trả phải lớn hơn hoặc bằng ngày vay.');
+            return;
+        }
+        const newDebt = {
+            name: document.getElementById('borrowerName').value,
+            amount: parseFloat(loanAmountInput.value),
+            rate: parseFloat(interestRateInput.value),
+            loanDate: loanDateInput.value,
+            returnDate: returnDateInput.value,
+            total: totalPayable,
+            status: 'unpaid'
+        };
+        debtList.push(newDebt);
+        saveAndRender();
+        this.reset();
+        totalExpectedInput.value = '';
+    });
+
+    function toggleStatus(index) {
+        debtList[index].status = debtList[index].status === 'paid' ? 'unpaid' : 'paid';
+        saveAndRender();
+    }
+
+    function deleteDebt(index) {
+        if (confirm('Bạn có chắc chắn muốn xóa không?')) {
+            debtList.splice(index, 1);
+            saveAndRender();
+        }
+    }
+
+    renderTable();
+</script>
+
+</body>
+</html>
