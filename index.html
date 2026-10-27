@@ -90,7 +90,9 @@ svg{display:block}
 .hero .lbl{font-size:14px;opacity:.85;display:flex;align-items:center;gap:6px}
 .hero .big{font-size:clamp(24px,7.5vw,32px);font-weight:800;letter-spacing:-.5px;margin:4px 0 0;white-space:nowrap}
 .hero.total{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom));z-index:5;margin-top:4px;padding:16px 20px;border-radius:26px;text-align:center}
-.hero.total .lbl{justify-content:center}
+.hero.total{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;padding:12px 18px;border-radius:22px}
+.hero.total .lbl{justify-content:flex-start;font-size:13.5px;white-space:nowrap}
+.hero.total .big{margin:0;font-size:clamp(16px,5vw,20px);text-align:right}
 
 /* mục */
 #sections{margin-top:14px}
@@ -114,16 +116,17 @@ svg{display:block}
 .hard .ic,.hard .add{background:var(--g-hard)}
 .online .ic,.online .add{background:var(--g-online)}
 .item{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 14px;margin-bottom:10px}
-.item .top{display:flex;gap:12px;align-items:flex-start}
-.item .info{flex:1;min-width:0}
-.item .t{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .r1{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.item .r2{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.item .r2 .d{margin:0;flex:1;min-width:0}
+.item .t{flex:1;min-width:0;font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .item .d{color:var(--muted);font-size:13px;margin-top:3px;word-break:break-word}
-.item .right{flex:none;max-width:62%;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.item .v{text-align:right;font-weight:800;font-size:17px;white-space:nowrap}
+.item .d.n{white-space:pre-line;font-style:italic;margin-top:6px}
+.item .v{flex:none;text-align:right;font-weight:800;font-size:17px;white-space:nowrap}
 .item .v.dim{color:var(--muted);font-size:13px;font-weight:600}
 .gold .v{color:var(--c-gold)} .hard .v{color:var(--c-hard)} .online .v{color:var(--c-online)}
-.btns{display:flex;justify-content:flex-end;gap:6px}
-.pill{border:0;border-radius:11px;padding:5px 11px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:5px}
+.btns{flex:none;display:grid;grid-template-columns:60px 60px;gap:6px;align-items:center}
+.pill{border:0;border-radius:11px;width:60px;height:30px;margin:0;padding:0;font-size:12.5px;line-height:1;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;vertical-align:middle;-webkit-appearance:none;appearance:none}
 .pill svg{width:13px;height:13px}
 .pill.e{background:rgba(91,155,255,.14);color:var(--blue)}
 .pill.d{background:rgba(255,92,122,.14);color:var(--red)}
@@ -442,18 +445,21 @@ function countTo(el,to){cancelAnimationFrame(animId);var from=lastTotal,t0=perfo
 function renderAssets(){
   var t=totals();countTo($('#grand'),t.all);
   $('#sections').innerHTML=KINDS.map(function(k){
-    var items=D[k],cards;
+    var items=D[k],cards,cnt;
+    if(k==='gold'){var q=0;items.forEach(function(i){q+=Math.max(0,Number(i.qty)||0);});cnt='Tổng '+qtyStr(Math.round(q*1000)/1000)+' chỉ';}
+    else cnt=items.length+' sổ';
     if(!items.length){cards='<div class="empty">'+ICON[k].replace('<svg','<svg width="28" height="28" style="opacity:.6;margin:0 auto 8px"')+'Chưa có '+NAMES[k].toLowerCase()+'. Nhấn “+ Thêm” để bắt đầu.</div>';}
     else{cards=items.map(function(i,idx){
-      var title,desc,val,dim='';
-      if(k==='gold'){title=esc(i.name);desc=qtyStr(Number(i.qty)||0)+' chỉ'+(i.note?' · '+esc(i.note):'');
+      var title,desc,val,dim='',note='';
+      if(k==='gold'){title=esc(i.name);desc='Số lượng: '+qtyStr(Number(i.qty)||0)+' chỉ';note=i.note?'Ghi chú: '+esc(i.note):'';
         if(goldPrice){val=fmt(goldVal(i));}else{val='Chưa có đơn giá';dim=' dim';}}
       else if(k==='hard'){title=esc(i.name);desc='Ngày mở sổ: '+esc(toDisplay(i.date));val=fmt(+i.amount||0);}
       else{title='Sổ online';desc='Ngày mở sổ: '+esc(toDisplay(i.date));val=fmt(+i.amount||0);}
-      return '<div class="item"><div class="top"><div class="info"><div class="t">'+title+'</div><div class="d">'+desc+'</div></div>'+
-        '<div class="right"><div class="v'+dim+'">'+val+'</div><div class="btns"><button class="pill e" data-edit="'+k+'" data-i="'+idx+'">'+ICON.edit+'Sửa</button><button class="pill d" data-del="'+k+'" data-i="'+idx+'">'+ICON.del+'Xóa</button></div></div></div></div>';
+      return '<div class="item"><div class="r1"><div class="t">'+title+'</div><div class="v'+dim+'">'+val+'</div></div>'+
+        '<div class="r2"><div class="d">'+desc+'</div><div class="btns"><button class="pill e" data-edit="'+k+'" data-i="'+idx+'">'+ICON.edit+'Sửa</button><button class="pill d" data-del="'+k+'" data-i="'+idx+'">'+ICON.del+'Xóa</button></div></div>'+
+        (note?'<div class="d n">'+note+'</div>':'')+'</div>';
     }).join('');}
-    return '<div class="zone '+k+'"><div class="sec"><span class="ic">'+ICON[k]+'</span><div class="tt"><b>'+NAMES[k]+'</b><small>'+items.length+' mục</small></div><button class="add" data-add="'+k+'">+ Thêm</button></div>'+cards+'</div>';
+    return '<div class="zone '+k+'"><div class="sec"><span class="ic">'+ICON[k]+'</span><div class="tt"><b>'+NAMES[k]+'</b><small>'+cnt+'</small></div><button class="add" data-add="'+k+'">+ Thêm</button></div>'+cards+'</div>';
   }).join('');
 }
 function renderStats(){
