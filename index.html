@@ -254,7 +254,7 @@ nav button.active span{display:inline}
     <h1>Tỉ lệ tài sản</h1>
     <div class="card" id="donutCard"></div>
     <div class="card">
-      <div class="trow h"><div class="c1">Loại tài sản</div><div class="c2">Tổng giá trị</div><div class="c3">Tỉ lệ</div></div>
+      <div class="trow h"><div class="c1">Loại tài sản</div><div class="c2">Giá trị</div><div class="c3">Tỉ lệ</div></div>
       <div id="stats-rows"></div>
       <div class="trow sumrow" id="stats-sum"></div>
     </div>
@@ -446,7 +446,7 @@ function renderAssets(){
   var t=totals();countTo($('#grand'),t.all);
   $('#sections').innerHTML=KINDS.map(function(k){
     var items=D[k],cards,cnt;
-    if(k==='gold'){var q=0;items.forEach(function(i){q+=Math.max(0,Number(i.qty)||0);});cnt='Tổng '+qtyStr(Math.round(q*1000)/1000)+' chỉ';}
+    if(k==='gold'){var q=0;items.forEach(function(i){q+=Math.max(0,Number(i.qty)||0);});cnt=qtyStr(Math.round(q*1000)/1000)+' chỉ';}
     else cnt=items.length+' sổ';
     if(!items.length){cards='<div class="empty">'+ICON[k].replace('<svg','<svg width="28" height="28" style="opacity:.6;margin:0 auto 8px"')+'Chưa có '+NAMES[k].toLowerCase()+'. Nhấn “+ Thêm” để bắt đầu.</div>';}
     else{cards=items.map(function(i,idx){
@@ -492,7 +492,7 @@ $('#nav').addEventListener('click',function(e){var b=e.target.closest('button');
 
 /* ---------- Form thêm / sửa ---------- */
 var FORMS={
-  gold:{title:'vàng',fields:[{k:'name',label:'Tên cửa hàng',kind:'text'},{k:'qty',label:'Số lượng',kind:'qty',suf:'chỉ',ph:'VD: 5 hoặc 2,5'},{k:'note',label:'Ghi chú (không bắt buộc)',kind:'textarea'}]},
+  gold:{title:'vàng',fields:[{k:'name',label:'Tên cửa hàng',kind:'text'},{k:'qty',label:'Số lượng',kind:'qty',suf:'chỉ',ph:'VD: 5 hoặc 2,5'},{k:'note',label:'Ghi chú',kind:'textarea'}]},
   hard:{title:'sổ tiết kiệm cứng',fields:[{k:'name',label:'Tên ngân hàng',kind:'text'},{k:'amount',label:'Số tiền',kind:'money',suf:'VND',ph:'0'},{k:'date',label:'Ngày mở sổ',kind:'date'}]},
   online:{title:'sổ tiết kiệm online',fields:[{k:'amount',label:'Số tiền',kind:'money',suf:'VND',ph:'0'},{k:'date',label:'Ngày mở sổ',kind:'date'}]}
 };
