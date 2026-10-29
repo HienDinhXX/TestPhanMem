@@ -154,7 +154,16 @@ to{opacity:1;transform:none;}
 @media (max-width:420px){.custom-report-item-header{grid-template-columns:minmax(0,1fr) auto;}
 .custom-report-amount{grid-column:1 / -1;text-align:left;}
 }
-  </style>
+  @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+#tab-report.active>.card{animation:cardIn .55s cubic-bezier(.2,.8,.2,1) both}
+#tab-report.active>.card:nth-child(2){animation-delay:.06s}
+#tab-report.active>.card:nth-child(3){animation-delay:.12s}
+#tab-report.active>.card:nth-child(4){animation-delay:.18s}
+#tab-report.active>.card:nth-child(5){animation-delay:.24s}
+#tab-report.active>.card:nth-child(n+6){animation-delay:.3s}
+#tab-report canvas{cursor:pointer}
+@media(prefers-reduced-motion:reduce){#tab-report.active>.card{animation:none}}
+</style>
 </head>
 <body>
   <!-- TAB BAR -->
@@ -1888,290 +1897,230 @@ to{opacity:1;transform:none;}
         categoriesList.map(
           c => c.color
         );
-      drawPieChart(
-        chartCanvasId,
-        pieData,
-        pieColors,
-        total
-      );
+      drawPieChart(chartCanvasId, pieData, pieColors, total, categoriesList.map(c => c.name));
     }
     /* =====================================================
-       BIỂU ĐỒ TRÒN
+       BIỂU ĐỒ ĐỘNG (tròn + cột): hiệu ứng chạy khi cuộn tới, chạm để xem chi tiết
        ===================================================== */
-    function drawPieChart(
-      canvasId,
-      dataArr,
-      colorsArr,
-      total
-    ) {
-      const canvas =
-        document.getElementById(
-          canvasId
-        );
-      const ctx =
-        canvas.getContext('2d');
-      const dpr =
-        window.devicePixelRatio || 1;
-      const w =
-        Math.round(
-          canvas.getBoundingClientRect().width
-        ) ||
-        Math.max(
-          (canvas.parentElement.clientWidth || 332) - 32,
-          200
-        );
+    const CH_REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const chEase = t => 1 - Math.pow(1 - t, 3);
+    const chBack = t => { const c = 1.4; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+    const chClamp = t => Math.max(0, Math.min(1, t));
+    const chMoney = v => Math.round(v).toLocaleString('vi-VN') + ' VND';
+    function chPrep(canvas, w, h) {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      return ctx;
+    }
+    function chRun(canvas, ms) {
+      cancelAnimationFrame(canvas._raf);
+      canvas._anim = true;
+      const t0 = performance.now(), dur = CH_REDUCE ? 0 : ms;
+      const step = now => {
+        const p = dur ? chClamp((now - t0) / dur) : 1;
+        canvas._render(p);
+        if (p < 1) canvas._raf = requestAnimationFrame(step);
+        else canvas._anim = false;
+      };
+      canvas._raf = requestAnimationFrame(step);
+    }
+    const chObserver = 'IntersectionObserver' in window ? new IntersectionObserver(es => {
+      es.forEach(e => {
+        const c = e.target;
+        if (e.isIntersecting && c._pending) { c._pending = false; c._start(); }
+      });
+    }, { threshold: 0.25 }) : null;
+    function chRegister(canvas, start) {
+      canvas._start = start; canvas._pending = true;
+      if (chObserver) { chObserver.unobserve(canvas); chObserver.observe(canvas); }
+      else { canvas._pending = false; start(); }
+    }
+    function chPoint(canvas, ev) {
+      const r = canvas.getBoundingClientRect();
+      return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    }
+    function chBind(canvas, onMove, onLeave) {
+      if (canvas._bound) return;
+      canvas._bound = true;
+      canvas.style.touchAction = 'manipulation';
+      canvas.addEventListener('pointerdown', e => onMove(chPoint(canvas, e), true, e.pointerType));
+      canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') onMove(chPoint(canvas, e), false); });
+      canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') onLeave(); });
+    }
+    function chRedraw(canvas) { if (!canvas._anim && canvas._render) canvas._render(1); }
+
+    function drawPieChart(canvasId, dataArr, colorsArr, total, namesArr) {
+      const canvas = document.getElementById(canvasId);
+      const cfg = canvas._cfg = { dataArr, colorsArr, total, namesArr: namesArr || [], hover: -1 };
       const h = 220;
-      canvas.width =
-        w * dpr;
-      canvas.height =
-        h * dpr;
-      canvas.style.height =
-        h + "px";
-      ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-      );
-      ctx.clearRect(
-        0,
-        0,
-        w,
-        h
-      );
-      const cx =
-        w / 2;
-      const cy =
-        h / 2;
-      const radius =
-        Math.min(w, h) / 2 - 16;
-      if (total <= 0) {
-        ctx.fillStyle =
-          '#8e8e93';
-        ctx.font =
-          '14px -apple-system, sans-serif';
-        ctx.textAlign =
-          'center';
-        ctx.fillText(
-          'Chưa có chi tiêu trong khoảng thời gian này',
-          cx,
-          cy
-        );
-        return;
-      }
-      let startAngle =
-        -Math.PI / 2;
-      dataArr.forEach(
-        (val, i) => {
+      const setup = () => {
+        const w = Math.round(canvas.getBoundingClientRect().width) || Math.max((canvas.parentElement.clientWidth || 332) - 32, 200);
+        return { w, h, cx: w / 2, cy: h / 2, r: Math.min(w, h) / 2 - 14 };
+      };
+      canvas._render = p => {
+        const m = canvas._m = setup();
+        const ctx = chPrep(canvas, m.w, m.h);
+        if (cfg.total <= 0) {
+          ctx.fillStyle = '#8e8e93'; ctx.font = '14px -apple-system, sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText('Chưa có chi tiêu trong khoảng thời gian này', m.cx, m.cy);
+          return;
+        }
+        const sweep = chEase(p) * Math.PI * 2, gap = cfg.dataArr.filter(v => v > 0).length > 1 ? 0.025 : 0;
+        let a0 = -Math.PI / 2;
+        const lim = a0 + sweep;
+        cfg.dataArr.forEach((val, i) => {
           if (val <= 0) return;
-          const sliceAngle =
-            (val / total) *
-            2 *
-            Math.PI;
-          const endAngle =
-            startAngle +
-            sliceAngle;
+          const span = (val / cfg.total) * Math.PI * 2;
+          const s = a0 + gap / 2, e = Math.min(a0 + span - gap / 2, lim);
+          a0 += span;
+          if (e <= s) return;
+          const on = cfg.hover === i, mid = (s + e) / 2, off = on ? 7 : 0;
+          ctx.save();
+          ctx.translate(Math.cos(mid) * off, Math.sin(mid) * off);
+          ctx.globalAlpha = cfg.hover >= 0 && !on ? 0.45 : 1;
           ctx.beginPath();
-          ctx.moveTo(
-            cx,
-            cy
-          );
-          ctx.arc(
-            cx,
-            cy,
-            radius,
-            startAngle,
-            endAngle
-          );
+          ctx.arc(m.cx, m.cy, m.r, s, e);
+          ctx.arc(m.cx, m.cy, m.r * 0.6, e, s, true);
           ctx.closePath();
-          ctx.fillStyle =
-            colorsArr[i] ||
-            '#8e8e93';
+          ctx.fillStyle = cfg.colorsArr[i] || '#8e8e93';
           ctx.fill();
-          startAngle =
-            endAngle;
+          ctx.restore();
+        });
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const i = cfg.hover;
+        if (i >= 0 && cfg.dataArr[i] > 0) {
+          const name = String(cfg.namesArr[i] || 'Khác');
+          ctx.fillStyle = '#1c1c1e'; ctx.font = '600 13px -apple-system, sans-serif';
+          ctx.fillText(name.length > 14 ? name.slice(0, 13) + '…' : name, m.cx, m.cy - 16);
+          ctx.fillStyle = cfg.colorsArr[i] || '#007aff'; ctx.font = '700 18px -apple-system, sans-serif';
+          ctx.fillText(Math.round(cfg.dataArr[i] / cfg.total * 100) + '%', m.cx, m.cy + 4);
+          ctx.fillStyle = '#8e8e93'; ctx.font = '11px -apple-system, sans-serif';
+          ctx.fillText(formatShortMoney(cfg.dataArr[i]), m.cx, m.cy + 24);
+        } else {
+          ctx.fillStyle = '#8e8e93'; ctx.font = '12px -apple-system, sans-serif';
+          ctx.fillText('Tổng chi', m.cx, m.cy - 10);
+          ctx.fillStyle = '#1c1c1e'; ctx.font = '700 18px -apple-system, sans-serif';
+          ctx.fillText(formatShortMoney(cfg.total * chEase(p)), m.cx, m.cy + 12);
         }
-      );
-      ctx.beginPath();
-      ctx.arc(
-        cx,
-        cy,
-        radius * 0.55,
-        0,
-        Math.PI * 2
-      );
-      ctx.fillStyle =
-        '#ffffff';
-      ctx.fill();
+        ctx.textBaseline = 'alphabetic';
+      };
+      const pick = (pt, tap, type) => {
+        const m = canvas._m; if (!m || canvas._anim || cfg.total <= 0) return;
+        const dx = pt.x - m.cx, dy = pt.y - m.cy, d = Math.hypot(dx, dy);
+        let idx = -1;
+        if (d >= m.r * 0.55 && d <= m.r + 10) {
+          let ang = Math.atan2(dy, dx) + Math.PI / 2; if (ang < 0) ang += Math.PI * 2;
+          let acc = 0;
+          for (let i = 0; i < cfg.dataArr.length; i++) {
+            if (cfg.dataArr[i] <= 0) continue;
+            acc += cfg.dataArr[i] / cfg.total * Math.PI * 2;
+            if (ang <= acc) { idx = i; break; }
+          }
+        }
+        if (tap && type !== 'mouse' && idx === cfg.hover) idx = -1;
+        if (idx !== cfg.hover) { cfg.hover = idx; chRedraw(canvas); }
+      };
+      chBind(canvas, pick, () => { if (cfg.hover !== -1) { cfg.hover = -1; chRedraw(canvas); } });
+      chRegister(canvas, () => chRun(canvas, 1000));
     }
-    /* =====================================================
-       BIỂU ĐỒ CỘT
-       ===================================================== */
-    function drawBarChart(
-      canvasId,
-      labels,
-      values,
-      columnStepWidth = 40
-    ) {
-      const canvas =
-        document.getElementById(
-          canvasId
-        );
-      const ctx =
-        canvas.getContext('2d');
-      const dpr =
-        window.devicePixelRatio || 1;
-      const parentWidth =
-        canvas.parentElement
-          .clientWidth || 300;
-      const minChartWidth =
-        labels.length *
-        columnStepWidth;
-      const w =
-        Math.max(
-          parentWidth,
-          minChartWidth
-        );
-      const h = 220;
-      canvas.width =
-        w * dpr;
-      canvas.height =
-        h * dpr;
-      canvas.style.width =
-        w + "px";
-      canvas.style.height =
-        h + "px";
-      ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-      );
-      ctx.clearRect(
-        0,
-        0,
-        w,
-        h
-      );
-      const maxVal =
-        Math.max(
-          ...values,
-          1
-        );
-      const paddingLeft = 15;
-      const paddingRight = 15;
-      const paddingBottom = 30;
-      const chartWidth =
-        w -
-        paddingLeft -
-        paddingRight;
-      const chartHeight =
-        h -
-        paddingBottom -
-        25;
-      const barWidth =
-        Math.min(
-          28,
-          (
-            chartWidth /
-            labels.length
-          ) * 0.55
-        );
-      labels.forEach(
-        (lbl, i) => {
-          const val =
-            values[i];
-          const barH =
-            (val / maxVal) *
-            chartHeight;
-          const slotWidth =
-            chartWidth /
-            labels.length;
-          const x =
-            paddingLeft +
-            (i * slotWidth) +
-            (
-              (
-                slotWidth -
-                barWidth
-              ) / 2
-            );
-          const y =
-            h -
-            paddingBottom -
-            barH;
-          ctx.fillStyle =
-            val > 0
-              ? '#007aff'
-              : '#e5e5ea';
-          const renderH =
-            val > 0
-              ? Math.max(
-                  barH,
-                  4
-                )
-              : 2;
-          const renderY =
-            val > 0
-              ? y
-              : h -
-                paddingBottom -
-                2;
-          ctx.beginPath();
-          if (
-            typeof ctx.roundRect ===
-            'function'
-          ) {
-            ctx.roundRect(
-              x,
-              renderY,
-              barWidth,
-              renderH,
-              [4, 4, 0, 0]
-            );
-          }
-          else {
-            ctx.rect(
-              x,
-              renderY,
-              barWidth,
-              renderH
-            );
-          }
-          ctx.fill();
-          ctx.fillStyle =
-            '#1c1c1e';
-          ctx.font =
-            '11px -apple-system, sans-serif';
-          ctx.textAlign =
-            'center';
-          ctx.fillText(
-            lbl,
-            x +
-              barWidth / 2,
-            h - 8
-          );
+
+    function drawBarChart(canvasId, labels, values, columnStepWidth = 40) {
+      const canvas = document.getElementById(canvasId);
+      const cfg = canvas._cfg = { labels, values, sel: -1 };
+      const h = 220, pl = 15, pr = 15, pb = 30, top = 25;
+      const maxVal = Math.max(...values, 1);
+      canvas._render = p => {
+        const w = Math.max(canvas.parentElement.clientWidth || 300, labels.length * Math.min(columnStepWidth, 26));
+        canvas.style.width = w + 'px'; canvas.style.maxWidth = 'none';
+        const ctx = chPrep(canvas, w, h);
+        const cw = w - pl - pr, ch = h - pb - top, slot = cw / labels.length;
+        const bw = Math.min(28, slot * 0.55);
+        ctx.strokeStyle = '#eeeef3'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+        for (let g = 0; g <= 3; g++) {
+          const y = Math.round(h - pb - ch * g / 3) + 0.5;
+          ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(w - pr, y); ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        canvas._bars = [];
+        labels.forEach((lbl, i) => {
+          const val = values[i];
+          const x = pl + i * slot + (slot - bw) / 2;
+          const bp = chClamp((p * 1.6 - (i / labels.length) * 0.6) / 1);
+          const grow = chBack(chClamp(bp));
+          const full = val > 0 ? Math.max((val / maxVal) * ch, 4) : 2;
+          const bh = Math.max(full * grow, val > 0 ? 0 : 2);
+          const y = h - pb - bh;
+          canvas._bars.push({ x: x - 4, w: bw + 8, i });
+          const on = cfg.sel === i;
           if (val > 0) {
-            ctx.fillStyle =
-              '#8e8e93';
-            ctx.font =
-              '9px -apple-system, sans-serif';
-            const displayVal =
-              formatShortMoney(val);
-            ctx.fillText(
-              displayVal,
-              x +
-                barWidth / 2,
-              renderY - 5
-            );
+            const g = ctx.createLinearGradient(0, y, 0, h - pb);
+            g.addColorStop(0, on ? '#0051d4' : '#5ac8fa'); g.addColorStop(1, on ? '#007aff' : '#007aff');
+            ctx.fillStyle = g;
+          } else ctx.fillStyle = '#e5e5ea';
+          ctx.globalAlpha = cfg.sel >= 0 && !on ? 0.5 : 1;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, bw, bh, [5, 5, 0, 0]); else ctx.rect(x, y, bw, bh);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = on ? '#007aff' : '#1c1c1e'; ctx.font = (on ? '600 ' : '') + '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText(lbl, x + bw / 2, h - 8);
+          if (val > 0 && !on) {
+            ctx.globalAlpha = chClamp(bp * 1.5 - 0.5);
+            ctx.fillStyle = '#8e8e93'; ctx.font = '9px -apple-system, sans-serif';
+            ctx.fillText(formatShortMoney(val * Math.min(grow, 1)), x + bw / 2, y - 5);
+            ctx.globalAlpha = 1;
           }
+        });
+        if (cfg.sel >= 0 && values[cfg.sel] > 0) {
+          const i = cfg.sel, text = chMoney(values[i]);
+          ctx.font = '600 12px -apple-system, sans-serif';
+          const tw = ctx.measureText(text).width + 16;
+          const bx = pl + i * slot + slot / 2;
+          const tx = Math.max(4, Math.min(w - tw - 4, bx - tw / 2));
+          const ty = Math.max(2, h - pb - (values[i] / maxVal) * ch - 34);
+          ctx.fillStyle = '#1c1c1e';
+          ctx.beginPath();
+          if (typeof ctx.roundRect === 'function') ctx.roundRect(tx, ty, tw, 22, 8); else ctx.rect(tx, ty, tw, 22);
+          ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+          ctx.fillText(text, tx + tw / 2, ty + 15);
         }
-      );
+      };
+      chBind(canvas, (pt, tap) => {
+        if (!tap || canvas._anim) return;
+        const hit = (canvas._bars || []).find(b => pt.x >= b.x && pt.x <= b.x + b.w);
+        const idx = hit ? (hit.i === cfg.sel ? -1 : hit.i) : -1;
+        if (idx !== cfg.sel) { cfg.sel = idx; chRedraw(canvas); }
+      }, () => {});
+      chRegister(canvas, () => chRun(canvas, 1100));
     }
+
+    /* Đếm số tổng tiền khi mở báo cáo */
+    (function () {
+      const fmt = (n, sep) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+      document.querySelectorAll('#tab-report .summary-num').forEach(el => {
+        let busy = false;
+        new MutationObserver(() => {
+          if (busy) return;
+          const txt = el.textContent.trim();
+          if (!/^\d{1,3}([.,]\d{3})*\s*VND$/i.test(txt)) return;
+          const sep = txt.includes(',') ? ',' : '.', target = parseInt(txt.replace(/\D/g, ''), 10);
+          if (!target || CH_REDUCE) return;
+          const t0 = performance.now(); busy = true;
+          const tick = now => {
+            const p = chClamp((now - t0) / 900);
+            el.textContent = fmt(target * chEase(p), sep) + ' VND';
+            if (p < 1) requestAnimationFrame(tick); else busy = false;
+          };
+          requestAnimationFrame(tick);
+        }).observe(el, { childList: true, characterData: true, subtree: true });
+      });
+    })();
+
     /* =====================================================
        BÁO CÁO TÙY CHỌN THÁNG / NĂM
        ===================================================== */
