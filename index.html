@@ -496,7 +496,7 @@ function renderStats(){
       defs+='<linearGradient id="g-'+k+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+SOLID[k][0]+'"/><stop offset="1" stop-color="'+SOLID[k][1]+'"/></linearGradient>';
       if(t[k]<=0)return;var len=t[k]/t.all*C;
       circles+='<circle data-k="'+k+'" data-len="'+Math.max(0,len-gap)+'" data-c="'+C+'" cx="100" cy="100" r="'+R+'" stroke="url(#g-'+k+')" stroke-dasharray="0 '+C+'" stroke-dashoffset="'+(-(off+gap/2))+'"/>';off+=len;});
-    box.innerHTML='<div class="donut-wrap"><svg viewBox="0 0 200 200"><defs>'+defs+'</defs><circle cx="100" cy="100" r="'+R+'" stroke="var(--track)"/>'+circles+'</svg><div class="donut-mid" id="donutMid">'+midHTML(null,t)+'</div></div><div class="hint" style="text-align:center;margin:10px 0 0">Chạm vào từng phần để xem chi tiết</div>';
+    box.innerHTML='<div class="donut-wrap"><svg viewBox="0 0 200 200"><defs>'+defs+'</defs><circle cx="100" cy="100" r="'+R+'" stroke="var(--track)"/>'+circles+'</svg><div class="donut-mid" id="donutMid">'+midHTML(null,t)+'</div></div><div class="hint" style="text-align:center;margin:10px 0 0"></div>';
     requestAnimationFrame(function(){requestAnimationFrame(function(){box.querySelectorAll('circle[data-len]').forEach(function(c){c.setAttribute('stroke-dasharray',c.dataset.len+' '+c.dataset.c);});});});}
   var ordered=KINDS.slice().sort(function(a,b){return t[b]-t[a];});
   $('#stats-rows').innerHTML=ordered.map(function(k){var p=t.all>0?t[k]/t.all:0;
