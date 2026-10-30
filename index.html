@@ -63,8 +63,8 @@
 <body>
 
   <header>
-    <button class="tab-btn active" onclick="switchTab('t1')">1. Thêm & Sửa Lô</button>
-    <button class="tab-btn" onclick="switchTab('t2')">2. Đấu Giá (8 Cột)</button>
+    <button class="tab-btn active" onclick="switchTab('t1')">1. Thêm & Sửa</button>
+    <button class="tab-btn" onclick="switchTab('t2')">2. Ghi</button>
   </header>
 
   <div class="container">
@@ -80,7 +80,7 @@
           <input type="number" step="0.1" id="d" placeholder="m²" required>
         </div>
         <div class="input-wrap large">
-          <input type="number" step="any" id="g" placeholder="Giá tổng (Triệu)" required>
+          <input type="number" step="any" id="g" placeholder="Giá tổng)" required>
         </div>
         <button type="submit" class="btn-add">Thêm</button>
       </form>
@@ -92,7 +92,7 @@
             <tr>
               <th class="t1-ma">Mã</th>
               <th class="t1-dt">Diện tích (m²)</th>
-              <th class="t1-gia">Giá KĐ (Triệu)</th>
+              <th class="t1-gia">Giá KĐ)</th>
             </tr>
           </thead>
           <tbody id="tb1"></tbody>
@@ -142,7 +142,7 @@
         </table>
       </div>
       <div class="bar">
-        <span>Tất cả ô nhập giá = Triệu. Đơn giá = Triệu/m²</span>
+        
         <button class="btn-text" onclick="exportCSV()" style="color:#0066cc;">Xuất CSV</button>
       </div>
     </div>
