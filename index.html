@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Đấu Giá Đất</title>
+  <title>Đấu Giá Đất (Đơn vị: Triệu)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fff; color: #111; font-size: 11px; }
@@ -73,7 +73,7 @@
           <input type="number" step="0.1" id="d" placeholder="m²" required>
         </div>
         <div class="input-wrap large">
-          <input type="number" step="any" id="g" placeholder="Giá tổng (Tỷ)" required>
+          <input type="number" step="any" id="g" placeholder="Giá tổng (Triệu)" required>
         </div>
         <button type="submit" class="btn-add">Thêm</button>
       </form>
@@ -83,8 +83,8 @@
           <thead>
             <tr>
               <th class="t1-ma">Mã</th>
-              <th class="t1-dt">Diện tích</th>
-              <th class="t1-gia">Giá KĐ (Tỷ)</th>
+              <th class="t1-dt">Diện tích (m²)</th>
+              <th class="t1-gia">Giá KĐ (Triệu)</th>
             </tr>
           </thead>
           <tbody id="tb1"></tbody>
@@ -116,7 +116,7 @@
         </table>
       </div>
       <div class="bar">
-        <span>Đơn vị /m²: Tr/m²</span>
+        <span>Tất cả ô nhập giá = Triệu. Đơn giá = Triệu/m²</span>
         <button class="btn-text" onclick="exportCSV()" style="color:#0066cc;">Xuất CSV</button>
       </div>
     </div>
@@ -124,10 +124,10 @@
   </div>
 
   <script>
-    let lots = JSON.parse(localStorage.getItem('min_auction_lots') || '[]');
+    let lots = JSON.parse(localStorage.getItem('min_auction_lots_trieu') || '[]');
 
     function save() {
-      localStorage.setItem('min_auction_lots', JSON.stringify(lots));
+      localStorage.setItem('min_auction_lots_trieu', JSON.stringify(lots));
       document.getElementById('cnt').textContent = `${lots.length} lô`;
     }
 
@@ -149,13 +149,13 @@
       e.preventDefault();
       const m = document.getElementById('m').value.trim().toUpperCase();
       const d = parseFloat(document.getElementById('d').value);
-      const g = parseFloat(document.getElementById('g').value);
-      if(!m || !d || !g) return;
+      const g = parseFloat(document.getElementById('g').value); // Đơn vị: Triệu
+      if(!m || !d || isNaN(g)) return;
 
       lots.unshift({
         id: Date.now().toString(),
         ma: m, dt: d,
-        kd: g * 1000000000,
+        kd: g, // Lưu trực tiếp là Triệu
         v1: 0, v2: 0
       });
       save();
@@ -169,7 +169,7 @@
     function updateVal(id, field, val) {
       const l = lots.find(item => item.id === id);
       if(l) {
-        l[field] = (parseFloat(val) || 0) * 1000000000;
+        l[field] = parseFloat(val) || 0; // Lưu trực tiếp giá trị Triệu
         save();
         renderT2();
       }
@@ -177,12 +177,12 @@
 
     function fGia(v) {
       if(!v) return '-';
-      return (v / 1000000000).toFixed(3).replace(/\.?0+$/, '');
+      return v.toLocaleString('vi-VN');
     }
 
     function fM2(v, dt) {
       if(!v || !dt) return '-';
-      return (v / dt / 1000000).toFixed(1);
+      return (v / dt).toFixed(2); // Trả về Triệu/m² với 2 chữ số thập phân
     }
 
     function renderT1() {
@@ -211,12 +211,14 @@
         const v1m2 = fM2(l.v1, l.dt);
         const v2m2 = fM2(l.v2, l.dt);
         let v3 = '-';
+        
+        // Dự báo Vòng 3 theo nhịp tăng V1 -> V2
         if(l.v1 && l.v2 && l.dt) {
           const m1 = l.v1 / l.dt;
           const m2 = l.v2 / l.dt;
-          v3 = ((m2 + Math.max(m2 - m1, 0)) / 1000000).toFixed(1);
+          v3 = (m2 + Math.max(m2 - m1, 0)).toFixed(2);
         } else if(l.v1 && l.dt) {
-          v3 = ((l.v1 / l.dt * 1.05) / 1000000).toFixed(1);
+          v3 = (l.v1 / l.dt * 1.05).toFixed(2);
         }
 
         return `
@@ -225,11 +227,11 @@
             <td style="text-align:right">${l.dt}</td>
             <td style="text-align:right">${fGia(l.kd)}</td>
             <td style="text-align:right">
-              <input type="number" step="any" class="cell-input" value="${l.v1 ? (l.v1/1000000000).toFixed(3).replace(/\.?0+$/, '') : ''}" placeholder="Tỷ" onchange="updateVal('${l.id}','v1',this.value)">
+              <input type="number" step="any" class="cell-input" value="${l.v1 ? l.v1 : ''}" placeholder="Triệu" onchange="updateVal('${l.id}','v1',this.value)">
             </td>
             <td class="t2-v1m2">${v1m2}</td>
             <td style="text-align:right">
-              <input type="number" step="any" class="cell-input" value="${l.v2 ? (l.v2/1000000000).toFixed(3).replace(/\.?0+$/, '') : ''}" placeholder="Tỷ" onchange="updateVal('${l.id}','v2',this.value)">
+              <input type="number" step="any" class="cell-input" value="${l.v2 ? l.v2 : ''}" placeholder="Triệu" onchange="updateVal('${l.id}','v2',this.value)">
             </td>
             <td class="t2-v2m2">${v2m2}</td>
             <td class="t2-v3m2">${v3}</td>
@@ -248,14 +250,14 @@
     }
 
     function exportCSV() {
-      let csv = '\uFEFFMã,Diện tích,Giá KĐ,Vản 1,V1/m2,Vòng 2,V2/m2\n';
+      let csv = '\uFEFFMã,Diện tích,Giá KĐ (Triệu),Vòng 1 (Triệu),V1/m2 (Triệu/m2),Vòng 2 (Triệu),V2/m2 (Triệu/m2)\n';
       lots.forEach(l => {
         csv += `${l.ma},${l.dt},${l.kd},${l.v1},${fM2(l.v1,l.dt)},${l.v2},${fM2(l.v2,l.dt)}\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'daugia.csv';
+      a.download = 'daugia_trieu.csv';
       a.click();
     }
 
