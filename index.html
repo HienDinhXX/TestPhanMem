@@ -132,8 +132,8 @@
           <thead>
             <tr>
               <th class="t2-ma">Mã</th>
-              <th class="t2-dt sortable" onclick="toggleSortDt()" id="th-dt" title="Bấm để sắp xếp theo diện tích">S ↕</th>
-              <th class="t2-gkd">KĐ</th>
+              <th class="t2-dt sortable" onclick="toggleSort('dt')" id="th-dt" title="Sắp xếp theo diện tích">S ↕</th>
+              <th class="t2-gkd sortable" onclick="toggleSort('kd')" id="th-kd" title="Sắp xếp theo giá khởi điểm">KĐ ↕</th>
               <th class="t2-gv1">V1</th>
               <th class="t2-v1m2">V1/m²</th>
               <th class="t2-gv2">V2</th>
@@ -346,8 +346,9 @@
       save();
     }
 
-    // Trạng thái sắp xếp diện tích: 'default' | 'asc' | 'desc'
-    let dtSortState = 'default';
+    // Quản lý trạng thái sắp xếp
+    let sortColumn = null; // 'dt' | 'kd'
+    let sortOrder = 'default'; // 'default' | 'asc' | 'desc'
 
     function save() {
       localStorage.setItem('min_auction_lots_trieu_v3', JSON.stringify(lots));
@@ -437,18 +438,25 @@
       return (v / dt).toFixed(2);
     }
 
-    function toggleSortDt() {
-      const th = document.getElementById('th-dt');
-      if (dtSortState === 'default') {
-        dtSortState = 'asc';
-        th.textContent = 'S ▲';
-      } else if (dtSortState === 'asc') {
-        dtSortState = 'desc';
-        th.textContent = 'S ▼';
+    function toggleSort(col) {
+      const thDt = document.getElementById('th-dt');
+      const thKd = document.getElementById('th-kd');
+
+      if (sortColumn !== col) {
+        sortColumn = col;
+        sortOrder = 'asc';
       } else {
-        dtSortState = 'default';
-        th.textContent = 'S ↕';
+        if (sortOrder === 'asc') sortOrder = 'desc';
+        else if (sortOrder === 'desc') {
+          sortOrder = 'default';
+          sortColumn = null;
+        }
       }
+
+      // Cập nhật biểu tượng tiêu đề
+      thDt.textContent = sortColumn === 'dt' ? (sortOrder === 'asc' ? 'S ▲' : (sortOrder === 'desc' ? 'S ▼' : 'S ↕')) : 'S ↕';
+      thKd.textContent = sortColumn === 'kd' ? (sortOrder === 'asc' ? 'KĐ ▲' : (sortOrder === 'desc' ? 'KĐ ▼' : 'KĐ ↕')) : 'KĐ ↕';
+
       renderT2();
     }
 
@@ -487,12 +495,13 @@
         return;
       }
 
-      // Đòn bẩy dữ liệu để sắp xếp mà không thay đổi thứ tự gốc của mảng `lots`
       let displayLots = [...lots];
-      if (dtSortState === 'asc') {
-        displayLots.sort((a, b) => a.dt - b.dt);
-      } else if (dtSortState === 'desc') {
-        displayLots.sort((a, b) => b.dt - a.dt);
+      if (sortColumn && sortOrder !== 'default') {
+        displayLots.sort((a, b) => {
+          const valA = a[sortColumn];
+          const valB = b[sortColumn];
+          return sortOrder === 'asc' ? valA - valB : valB - valA;
+        });
       }
 
       tb.innerHTML = displayLots.map(l => {
@@ -530,8 +539,10 @@
     function resetDefaultData() {
       if(confirm('Khôi phục lại toàn bộ dữ liệu gốc từ ảnh?')) {
         lots = JSON.parse(JSON.stringify(defaultLots));
-        dtSortState = 'default';
+        sortColumn = null;
+        sortOrder = 'default';
         document.getElementById('th-dt').textContent = 'S ↕';
+        document.getElementById('th-kd').textContent = 'KĐ ↕';
         save();
         renderT1();
         renderT2();
