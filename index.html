@@ -1,567 +1,445 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Đấu Giá</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fff; color: #111; font-size: 11px; display: flex; flex-direction: column; overflow: hidden; }
+<meta charset="utf-8">
+<title>Quản lý lô đất</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lô đất">
+<meta name="theme-color" content="#0B0B14" id="themeMeta">
+<meta name="format-detection" content="telephone=no">
+<script>
+(function(){var t='dark',a='ocean';try{t=localStorage.getItem('ld_theme')==='light'?'light':'dark';
+a=localStorage.getItem('ld_accent')||'ocean';if(['violet','ocean','forest','sunset'].indexOf(a)<0)a='ocean';}catch(e){}
+document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-accent',a);
+document.getElementById('themeMeta').setAttribute('content',t==='light'?'#F3F3F9':'#0B0B14');})();
+</script>
+<style>
+:root{
+  --bg:#0B0B14;--card:#161622;--card2:#1E1E2E;--text:#F4F4FA;--muted:#9D9DB8;
+  --line:rgba(255,255,255,.08);--soft:rgba(255,255,255,.06);--track:rgba(255,255,255,.08);
+  --violet:#7C3AED;--pink:#EC4899;--accent3:#FF8A3D;--a1rgb:124,58,237;--a2rgb:236,72,153;
+  --red:#FF5C7A;--blue:#5B9BFF;--green:#22E6A8;
+  --glow1:rgba(var(--a1rgb),.45);--glow2:rgba(91,155,255,.18);--glow3:rgba(var(--a2rgb),.18);
+  --navbg:rgba(18,18,28,.78);--navshadow:rgba(0,0,0,.5);--toast:#2A2A3C;--scrim:rgba(0,0,0,.55);--btnshadow:rgba(0,0,0,.3);
+  --g-land:linear-gradient(135deg,#22E6A8,#12B5F0);--g-loan:linear-gradient(135deg,#FFD54A,#FF7A1C);
+  --c-land:#1FD7C0;--c-loan:#FFB52E;--rgb-land:31,215,192;--rgb-loan:255,181,46;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F3F3F9;--card:#FFFFFF;--card2:#F0F0F7;--text:#16161F;--muted:#6B6B85;
+  --line:rgba(20,20,45,.09);--soft:rgba(20,20,45,.06);--track:rgba(20,20,45,.09);
+  --red:#E5365A;--blue:#2F6FE0;--green:#0A9E6C;
+  --glow1:rgba(var(--a1rgb),.20);--glow2:rgba(91,155,255,.16);--glow3:rgba(var(--a2rgb),.12);
+  --navbg:rgba(255,255,255,.82);--navshadow:rgba(40,40,80,.18);--scrim:rgba(20,20,40,.4);--btnshadow:rgba(40,40,80,.18);
+  --c-land:#0A9E8C;--c-loan:#D98A00;--rgb-land:10,158,140;--rgb-loan:217,138,0;
+  color-scheme:light;
+}
+:root[data-accent="violet"]{--violet:#7C3AED;--pink:#EC4899;--accent3:#FF8A3D;--a1rgb:124,58,237;--a2rgb:236,72,153}
+:root[data-accent="ocean"]{--violet:#2563EB;--pink:#0EA5E9;--accent3:#14B8A6;--a1rgb:37,99,235;--a2rgb:14,165,233}
+:root[data-accent="forest"]{--violet:#047857;--pink:#16A34A;--accent3:#65A30D;--a1rgb:4,120,87;--a2rgb:22,163,74}
+:root[data-accent="sunset"]{--violet:#E11D48;--pink:#F97316;--accent3:#F59E0B;--a1rgb:225,29,72;--a2rgb:249,115,22}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px}
+body{background:radial-gradient(520px 520px at 90% -80px,var(--glow1),transparent 70%),
+  radial-gradient(520px 520px at -120px 40%,var(--glow2),transparent 70%),
+  radial-gradient(480px 480px at 100% 100%,var(--glow3),transparent 70%),var(--bg);background-attachment:fixed}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 92px) 18px calc(28px + env(safe-area-inset-bottom))}
+h1{margin:0 0 14px;font-size:32px;font-weight:800;letter-spacing:-.6px}
+svg{display:block}
+.tab{display:none}
+.tab.active{display:block;animation:fade .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-    /* Header Tabs */
-    header { display: flex; border-bottom: 1px solid #ccc; background: #f8f8f8; position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
-    .tab-btn { flex: 1; padding: 8px 2px; border: none; background: none; font-size: 11px; font-weight: bold; color: #666; cursor: pointer; text-align: center; }
-    .tab-btn.active { color: #000; border-bottom: 2px solid #000; background: #fff; }
+/* thẻ tổng */
+.hero{position:relative;overflow:hidden;border-radius:30px;padding:22px;color:#fff;margin-bottom:14px;
+  background:linear-gradient(135deg,var(--violet) 0%,var(--pink) 60%,var(--accent3) 100%);box-shadow:0 18px 40px rgba(var(--a1rgb),.4)}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero:before{width:150px;height:150px;right:-40px;top:-45px}
+.hero:after{width:120px;height:120px;right:50px;bottom:-70px;background:rgba(255,255,255,.08)}
+.hero>*{position:relative;z-index:1}
+.hero .lbl{font-size:14px;opacity:.88}
+.hero .big{font-size:clamp(28px,9vw,38px);font-weight:800;letter-spacing:-.6px;margin:4px 0 14px;white-space:nowrap}
+.hero .pbar{height:8px;border-radius:5px;background:rgba(255,255,255,.28);overflow:hidden}
+.hero .pbar i{display:block;height:100%;width:0;border-radius:5px;background:#fff;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.hero .pct{font-size:12.5px;opacity:.88;margin-top:6px}
+.hero .stats{display:flex;gap:10px;margin-top:14px}
+.hero .stats div{flex:1;background:rgba(255,255,255,.16);border-radius:16px;padding:10px 12px;min-width:0}
+.hero .stats small{display:block;font-size:12px;opacity:.85}
+.hero .stats b{display:block;font-size:15px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero.over .big{color:#FFE1E6}
+.link{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:13px 16px;margin-bottom:14px;cursor:pointer;font-size:14px;color:var(--muted);width:100%;font-family:inherit;text-align:left}
+.link b{color:var(--c-loan);font-size:16px;white-space:nowrap}
+.link:active{transform:scale(.985)}
 
-    .container { flex: 1; display: flex; flex-direction: column; padding: 4px; overflow: hidden; }
-    .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-    .tab-content.active { display: flex; }
+/* thẻ / mục */
+.card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:20px;margin-bottom:16px}
+.card h3{margin:0 0 14px;font-size:17px;display:flex;align-items:center;gap:12px}
+.ic{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;flex:none;color:#fff}
+.ic svg{width:21px;height:21px}
+.zone{position:relative;overflow:hidden;border-radius:30px;padding:18px 14px 14px;margin-bottom:20px;
+  border:1px solid rgba(var(--zrgb),.35);background:linear-gradient(180deg,rgba(var(--zrgb),.16),rgba(var(--zrgb),.05) 60%,rgba(var(--zrgb),.03))}
+.zone:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--zg)}
+.zone.land{--zrgb:var(--rgb-land);--zg:var(--g-land)}
+.zone.loan{--zrgb:var(--rgb-loan);--zg:var(--g-loan)}
+.sec{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.sec .tt{flex:1;min-width:0}.sec .tt b{display:block;font-size:17px}.sec .tt small{color:var(--muted);font-size:12.5px}
+.land .ic,.land .add{background:var(--g-land)}.loan .ic,.loan .add{background:var(--g-loan)}
+.add{border:0;color:#fff;font-weight:700;font-size:14px;padding:9px 16px;border-radius:16px;font-family:inherit;cursor:pointer;box-shadow:0 6px 16px var(--btnshadow)}
+.add:active{transform:scale(.95)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 14px;margin-bottom:10px}
+.item:last-child{margin-bottom:0}
+.item .r1{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.item .r2{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.item .t{flex:1;min-width:0;font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .v{flex:none;font-weight:800;font-size:17px;white-space:nowrap}
+.land .v{color:var(--c-land)}.loan .v{color:var(--c-loan)}
+.item .d{color:var(--muted);font-size:13px;flex:1;min-width:0;word-break:break-word}
+.item .n{color:var(--muted);font-size:13px;font-style:italic;margin-top:6px;white-space:pre-line;word-break:break-word}
+.item .debt{display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);color:var(--muted)}
+.item .debt b{color:var(--text)}
+.item .debt b.ok{color:var(--green)}
+.btns{flex:none;display:grid;grid-template-columns:60px 60px;gap:6px}
+.pill{border:0;border-radius:11px;width:60px;height:30px;padding:0;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.pill.e{background:rgba(91,155,255,.14);color:var(--blue)}.pill.d{background:rgba(255,92,122,.14);color:var(--red)}
+.empty{border:1px dashed var(--line);border-radius:22px;padding:22px;text-align:center;color:var(--muted);font-size:14px;background:var(--soft)}
+.total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:4px 4px 0;font-size:14px;color:var(--muted)}
+.total b{font-size:16px;color:var(--text)}
 
-    /* Form Minimal */
-    .form-box { display: flex; gap: 4px; padding: 4px; background: #f4f4f4; border-bottom: 1px solid #ddd; align-items: center; flex-shrink: 0; }
-    .form-box input, .form-box select { width: 100%; height: 26px; font-size: 16px !important; transform: scale(0.6875); transform-origin: top left; width: 145.45%; padding: 2px 4px; border: 1px solid #aaa; border-radius: 2px; background: #fff; }
-    .input-wrap { flex: 1; display: flex; flex-direction: column; }
-    .input-wrap.small { flex: 0.8; }
-    .input-wrap.large { flex: 1.2; }
-    
-    .btn-add { height: 26px; padding: 0 8px; background: #222; color: #fff; border: none; font-size: 11px; font-weight: bold; border-radius: 2px; cursor: pointer; white-space: nowrap; }
-    .btn-edit { height: 26px; padding: 0 8px; background: #0066cc; color: #fff; border: none; font-size: 11px; font-weight: bold; border-radius: 2px; cursor: pointer; white-space: nowrap; }
+/* form */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.inp{position:relative}
+.field input,.field textarea,.field select{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:16px;
+  padding:15px 16px;font-size:17px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(var(--a2rgb),.18)}
+.field input[type=date]{display:block;min-height:54px;text-align:left}
+.inp .suf{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:600;font-size:14px;pointer-events:none}
+.inp input.has-suf{padding-right:84px}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0;line-height:1.45}
+.btn{width:100%;border:0;border-radius:16px;padding:15px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;cursor:pointer;box-shadow:0 8px 20px var(--btnshadow)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:var(--soft);border:1px solid var(--line);box-shadow:none;color:var(--text);font-weight:600}
+.btn+.btn{margin-top:10px}
+.seg{display:flex;gap:6px;padding:5px;border-radius:20px;background:var(--card2);border:1px solid var(--line)}
+.seg button{flex:1;border:0;background:none;color:var(--muted);font-family:inherit;font-size:15px;font-weight:700;padding:12px;border-radius:15px;cursor:pointer}
+.seg button.on{color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 6px 14px rgba(var(--a1rgb),.4)}
+.swatches{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:var(--card2);color:var(--text);border-radius:18px;padding:10px 12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;text-align:left}
+.sw i{width:32px;height:32px;border-radius:50%;flex:none}
+.sw.on{border-color:var(--pink);box-shadow:0 0 0 3px rgba(var(--a2rgb),.18)}
 
-    /* Section Header */
-    .sec-title { font-size: 10px; font-weight: bold; color: #333; margin: 6px 0 2px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+/* nav */
+nav{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(calc(100% - 32px),488px);height:62px;border-radius:31px;
+  display:flex;justify-content:space-evenly;align-items:center;background:var(--navbg);border:1px solid var(--line);
+  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);z-index:10;box-shadow:0 10px 30px var(--navshadow)}
+nav button{border:0;background:none;color:var(--muted);display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:24px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .3s cubic-bezier(.2,.8,.2,1)}
+nav button svg{width:22px;height:22px;flex:none}
+nav button span{display:none}
+nav button.active{color:#fff;padding:11px 18px;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 8px 18px rgba(var(--a1rgb),.45)}
+nav button.active span{display:inline}
 
-    /* Tables */
-    .table-wrap { width: 100%; flex: 1; overflow-x: auto; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-    th, td { padding: 3px 2px; border: 1px solid #ddd; text-align: right; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    th { background: #f0f0f0; color: #333; font-weight: bold; font-size: 9px; position: sticky; top: 0; z-index: 5; }
-    th:first-child, td:first-child { text-align: center; }
-    
-    th.sortable { cursor: pointer; user-select: none; }
-    th.sortable:hover { background: #e2e2e2; }
-
-    /* Cell Inputs */
-    .cell-input { width: 145.45%; height: 26px; font-size: 16px !important; transform: scale(0.6875); transform-origin: top left; padding: 0 2px; text-align: right; border: 1px solid #ccc; background: #fff; }
-    .cell-input:focus { border-color: #000; }
-
-    /* Column Widths */
-    .t1-ma { width: 25%; text-align: center; font-weight: bold; }
-    .t1-dt { width: 35%; }
-    .t1-gia { width: 40%; }
-
-    .t2-ma { width: 11%; text-align: center; font-weight: bold; }
-    .t2-dt { width: 10%; }
-    .t2-gkd { width: 13%; color: #555; }
-    .t2-gv1 { width: 13%; }
-    .t2-v1m2 { width: 13%; background: #f7f7f7; color: #0066cc; }
-    .t2-gv2 { width: 13%; }
-    .t2-v2m2 { width: 13%; background: #f7f7f7; color: #008844; }
-    .t2-v3m2 { width: 14%; background: #fffbe6; color: #b8860b; font-weight: bold; }
-
-    .bar { display: flex; justify-content: space-between; padding: 4px; font-size: 9px; color: #666; background: #f9f9f9; border-top: 1px solid #ddd; flex-shrink: 0; }
-    .btn-text { background: none; border: none; color: #c00; font-size: 9px; cursor: pointer; text-decoration: underline; }
-  </style>
+/* sheet / confirm / toast */
+.overlay{position:fixed;inset:0;background:var(--scrim);display:none;align-items:flex-end;justify-content:center;z-index:30;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:32px 32px 0 0;border:1px solid var(--line);border-bottom:0;
+  padding:12px 20px calc(20px + env(safe-area-inset-bottom));animation:up .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px}
+.sheet h2{margin:0 0 20px;font-size:20px;font-weight:800;display:flex;align-items:center;gap:12px}
+.err{color:var(--red);font-size:13.5px;margin:0 0 12px;min-height:0}
+#toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--toast);color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:70;border:1px solid var(--line)}
+#toast.show{opacity:1}
+.confirm{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;z-index:65;padding:24px}
+.confirm.show{display:flex}
+.confirm .box{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:22px;width:100%;max-width:360px}
+.confirm h4{margin:0 0 8px;font-size:18px}
+.confirm p{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.45;white-space:pre-line}
+.confirm .acts{display:flex;gap:10px;justify-content:flex-end}
+.confirm .acts button{border:0;border-radius:14px;padding:10px 18px;font-weight:700;font-size:14px;font-family:inherit;cursor:pointer;background:var(--soft);color:var(--muted)}
+.confirm .acts button.ok{background:var(--red);color:#fff}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 
-  <header>
-    <button class="tab-btn active" onclick="switchTab('t1')">1. Thêm</button>
-    <button class="tab-btn" onclick="switchTab('t2')">2. Đ G</button>
-  </header>
-
-  <div class="container">
-    
-    <!-- TAB 1 -->
-    <div id="t1" class="tab-content active">
-      <!-- Form Thêm Lô -->
-      <form class="form-box" onsubmit="addLot(event)">
-        <div class="input-wrap small">
-          <input type="text" id="m" placeholder="Mã lô" required autocomplete="off">
-        </div>
-        <div class="input-wrap small">
-          <input type="number" step="0.1" id="d" placeholder="m²" required>
-        </div>
-        <div class="input-wrap large">
-          <input type="number" step="any" id="g" placeholder="Giá tổng (Triệu)" required>
-        </div>
-        <button type="submit" class="btn-add">Thêm</button>
-      </form>
-
-      <!-- Bảng Danh Sách -->
-      <div class="table-wrap" style="margin-top:4px;">
-        <table>
-          <thead>
-            <tr>
-              <th class="t1-ma">Mã</th>
-              <th class="t1-dt">Diện tích (m²)</th>
-              <th class="t1-gia">Giá KĐ (Triệu)</th>
-            </tr>
-          </thead>
-          <tbody id="tb1"></tbody>
-        </table>
-      </div>
-
-      <!-- Phần Chọn & Chỉnh Sửa Bên Dưới Bảng -->
-      <div class="sec-title">✏️ CHỈNH SỬA</div>
-      <form class="form-box" onsubmit="editLot(event)" style="background: #eef6ff; border-color: #bbd7ff;">
-        <div class="input-wrap small">
-          <select id="edit-select" onchange="onSelectLotToEdit()">
-            <option value="">-- Chọn mã --</option>
-          </select>
-        </div>
-        <div class="input-wrap small">
-          <input type="number" step="0.1" id="edit-d" placeholder="m²" required>
-        </div>
-        <div class="input-wrap large">
-          <input type="number" step="any" id="edit-g" placeholder="Giá tổng (Triệu)" required>
-        </div>
-        <button type="submit" class="btn-edit">Lưu</button>
-      </form>
-
-      <div class="bar">
-        <button class="btn-text" onclick="resetDefaultData()">Khôi phục dữ liệu gốc</button>
-        <span id="cnt">0 lô</span>
+<div id="app">
+  <section class="tab active" id="tab-land">
+    <h1>Lô đất</h1>
+    <div class="hero" id="hero">
+      <div class="lbl" id="hLbl">Số tiền còn lại</div>
+      <div class="big" id="hBig">0 ₫</div>
+      <div class="pbar"><i id="hBar"></i></div>
+      <div class="pct" id="hPct"></div>
+      <div class="stats">
+        <div><small>Giá trị lô đất</small><b id="hLand">0 ₫</b></div>
+        <div><small>Đã chi</small><b id="hSpent">0 ₫</b></div>
       </div>
     </div>
+    <button class="link" id="goLoans"><span>Tổng đã vay</span><b id="hLoans">0 ₫</b></button>
 
-    <!-- TAB 2 -->
-    <div id="t2" class="tab-content">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th class="t2-ma">Mã</th>
-              <th class="t2-dt sortable" onclick="toggleSort('dt')" id="th-dt" title="Sắp xếp theo diện tích">S ↕</th>
-              <th class="t2-gkd sortable" onclick="toggleSort('kd')" id="th-kd" title="Sắp xếp theo giá khởi điểm">KĐ ↕</th>
-              <th class="t2-gv1">V1</th>
-              <th class="t2-v1m2">V1/m²</th>
-              <th class="t2-gv2">V2</th>
-              <th class="t2-v2m2">V2/m²</th>
-              <th class="t2-v3m2">Ư.V3/m²</th>
-            </tr>
-          </thead>
-          <tbody id="tb2"></tbody>
-        </table>
-      </div>
-      <div class="bar">
-        
-        <button class="btn-text" onclick="exportCSV()" style="color:#0066cc;">Xuất CSV</button>
-      </div>
+    <div class="card">
+      <h3><span class="ic" style="background:var(--g-land)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span>Thông tin lô đất</h3>
+      <div class="field"><label for="landName">Tên / vị trí lô đất (không bắt buộc)</label>
+        <input id="landName" type="text" autocomplete="off" placeholder="VD: Lô đất xã A"></div>
+      <div class="field" style="margin-bottom:0"><label for="landPrice">Số tiền lô đất</label>
+        <div class="inp"><input id="landPrice" class="has-suf" type="text" inputmode="numeric" autocomplete="off" placeholder="0"><span class="suf">VND</span></div></div>
     </div>
 
-  </div>
+    <div class="zone land">
+      <div class="sec"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/></svg></span>
+        <div class="tt"><b>Các khoản đã chi</b><small id="spCount"></small></div>
+        <button class="add" data-add="spend">+ Thêm</button></div>
+      <div id="spList"></div>
+      <div class="total" id="spTotal"></div>
+    </div>
+  </section>
 
-  <script>
-    // Dữ liệu mặc định trích xuất từ 10 ảnh (CL1-1 đến CL8-15)
-    const defaultLots = [
-      // Lô CL-1
-      { id: '1', ma: 'CL1-1', dt: 216.2, kd: 1362.06, v1: 0, v2: 0 },
-      { id: '2', ma: 'CL1-2', dt: 191.5, kd: 1149.0, v1: 0, v2: 0 },
-      { id: '3', ma: 'CL1-3', dt: 195.9, kd: 1175.4, v1: 0, v2: 0 },
-      { id: '4', ma: 'CL1-4', dt: 198.7, kd: 1192.2, v1: 0, v2: 0 },
-      { id: '5', ma: 'CL1-5', dt: 201.3, kd: 1207.8, v1: 0, v2: 0 },
-      { id: '6', ma: 'CL1-6', dt: 210.0, kd: 1617.0, v1: 0, v2: 0 },
-      { id: '7', ma: 'CL1-7', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '8', ma: 'CL1-8', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '9', ma: 'CL1-9', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '10', ma: 'CL1-10', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '11', ma: 'CL1-11', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '12', ma: 'CL1-12', dt: 175.0, kd: 1225.0, v1: 0, v2: 0 },
-      { id: '13', ma: 'CL1-13', dt: 195.5, kd: 1505.35, v1: 0, v2: 0 },
-      { id: '14', ma: 'CL1-14', dt: 203.0, kd: 1421.0, v1: 0, v2: 0 },
-      { id: '15', ma: 'CL1-15', dt: 203.0, kd: 1421.0, v1: 0, v2: 0 },
-      { id: '16', ma: 'CL1-16', dt: 203.0, kd: 1421.0, v1: 0, v2: 0 },
-      { id: '17', ma: 'CL1-17', dt: 203.0, kd: 1421.0, v1: 0, v2: 0 },
-      { id: '18', ma: 'CL1-18', dt: 221.5, kd: 1628.025, v1: 0, v2: 0 },
-      // Lô CL-2
-      { id: '19', ma: 'CL2-1', dt: 150.8, kd: 1108.38, v1: 0, v2: 0 },
-      { id: '20', ma: 'CL2-2', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '21', ma: 'CL2-3', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '22', ma: 'CL2-4', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '23', ma: 'CL2-5', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '24', ma: 'CL2-6', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '25', ma: 'CL2-7', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '26', ma: 'CL2-8', dt: 108.75, kd: 761.25, v1: 0, v2: 0 },
-      { id: '27', ma: 'CL2-9', dt: 117.0, kd: 900.9, v1: 0, v2: 0 },
-      { id: '28', ma: 'CL2-10', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '29', ma: 'CL2-11', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '30', ma: 'CL2-12', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '31', ma: 'CL2-13', dt: 90.0, kd: 693.0, v1: 0, v2: 0 },
-      { id: '32', ma: 'CL2-14', dt: 90.0, kd: 693.0, v1: 0, v2: 0 },
-      { id: '33', ma: 'CL2-15', dt: 90.0, kd: 693.0, v1: 0, v2: 0 },
-      { id: '34', ma: 'CL2-16', dt: 85.5, kd: 658.35, v1: 0, v2: 0 },
-      { id: '35', ma: 'CL2-17', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '36', ma: 'CL2-18', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '37', ma: 'CL2-19', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '38', ma: 'CL2-20', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '39', ma: 'CL2-21', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '40', ma: 'CL2-22', dt: 100.0, kd: 660.0, v1: 0, v2: 0 },
-      { id: '41', ma: 'CL2-23', dt: 100.0, kd: 600.0, v1: 0, v2: 0 },
-      { id: '42', ma: 'CL2-24', dt: 131.3, kd: 827.19, v1: 0, v2: 0 },
-      // Lô CL-3
-      { id: '43', ma: 'CL3-1', dt: 113.9, kd: 717.57, v1: 0, v2: 0 },
-      { id: '44', ma: 'CL3-2', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '45', ma: 'CL3-3', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '46', ma: 'CL3-4', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '47', ma: 'CL3-5', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '48', ma: 'CL3-6', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '49', ma: 'CL3-7', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '50', ma: 'CL3-8', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '51', ma: 'CL3-9', dt: 157.5, kd: 1212.75, v1: 0, v2: 0 },
-      { id: '52', ma: 'CL3-10', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '53', ma: 'CL3-11', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '54', ma: 'CL3-12', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '55', ma: 'CL3-13', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '56', ma: 'CL3-14', dt: 157.5, kd: 1212.75, v1: 0, v2: 0 },
-      { id: '57', ma: 'CL3-15', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '58', ma: 'CL3-16', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '59', ma: 'CL3-17', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '60', ma: 'CL3-18', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '61', ma: 'CL3-19', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '62', ma: 'CL3-20', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '63', ma: 'CL3-21', dt: 95.0, kd: 570.0, v1: 0, v2: 0 },
-      { id: '64', ma: 'CL3-22', dt: 107.1, kd: 674.73, v1: 0, v2: 0 },
-      // Lô CL-4
-      { id: '65', ma: 'CL4-1', dt: 93.7, kd: 590.31, v1: 0, v2: 0 },
-      { id: '66', ma: 'CL4-2', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '67', ma: 'CL4-3', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '68', ma: 'CL4-4', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '69', ma: 'CL4-5', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '70', ma: 'CL4-6', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '71', ma: 'CL4-7', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '72', ma: 'CL4-8', dt: 92.5, kd: 555.0, v1: 0, v2: 0 },
-      { id: '73', ma: 'CL4-9', dt: 148.5, kd: 1143.45, v1: 0, v2: 0 },
-      { id: '74', ma: 'CL4-10', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '75', ma: 'CL4-11', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '76', ma: 'CL4-12', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '77', ma: 'CL4-13', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '78', ma: 'CL4-14', dt: 153.0, kd: 1178.1, v1: 0, v2: 0 },
-      { id: '79', ma: 'CL4-15', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '80', ma: 'CL4-16', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '81', ma: 'CL4-17', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '82', ma: 'CL4-18', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '83', ma: 'CL4-19', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '84', ma: 'CL4-20', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '85', ma: 'CL4-21', dt: 93.75, kd: 375.0, v1: 0, v2: 0 },
-      { id: '86', ma: 'CL4-22', dt: 88.4, kd: 353.6, v1: 0, v2: 0 },
-      // Lô CL-5
-      { id: '87', ma: 'CL5-1', dt: 245.0, kd: 1886.5, v1: 0, v2: 0 },
-      { id: '88', ma: 'CL5-2', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '89', ma: 'CL5-3', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '90', ma: 'CL5-4', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '91', ma: 'CL5-5', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '92', ma: 'CL5-6', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '93', ma: 'CL5-7', dt: 180.25, kd: 1261.75, v1: 0, v2: 0 },
-      { id: '94', ma: 'CL5-8', dt: 227.25, kd: 1749.825, v1: 0, v2: 0 },
-      { id: '95', ma: 'CL5-9', dt: 218.3, kd: 1309.8, v1: 0, v2: 0 },
-      { id: '96', ma: 'CL5-10', dt: 218.5, kd: 1311.0, v1: 0, v2: 0 },
-      { id: '97', ma: 'CL5-11', dt: 218.7, kd: 1312.2, v1: 0, v2: 0 },
-      { id: '98', ma: 'CL5-12', dt: 218.8, kd: 1312.8, v1: 0, v2: 0 },
-      { id: '99', ma: 'CL5-13', dt: 219.0, kd: 1314.0, v1: 0, v2: 0 },
-      { id: '100', ma: 'CL5-14', dt: 219.7, kd: 1384.11, v1: 0, v2: 0 },
-      { id: '101', ma: 'CL5-15', dt: 210.0, kd: 1543.5, v1: 0, v2: 0 },
-      { id: '102', ma: 'CL5-16', dt: 210.0, kd: 1470.0, v1: 0, v2: 0 },
-      { id: '103', ma: 'CL5-17', dt: 210.0, kd: 1470.0, v1: 0, v2: 0 },
-      { id: '104', ma: 'CL5-18', dt: 210.0, kd: 1470.0, v1: 0, v2: 0 },
-      { id: '105', ma: 'CL5-19', dt: 210.0, kd: 1470.0, v1: 0, v2: 0 },
-      { id: '106', ma: 'CL5-20', dt: 210.0, kd: 1470.0, v1: 0, v2: 0 },
-      // Lô CL-6
-      { id: '107', ma: 'CL6-1', dt: 84.25, kd: 648.725, v1: 0, v2: 0 },
-      { id: '108', ma: 'CL6-2', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '109', ma: 'CL6-3', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '110', ma: 'CL6-4', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '111', ma: 'CL6-5', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '112', ma: 'CL6-6', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '113', ma: 'CL6-7', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '114', ma: 'CL6-8', dt: 84.25, kd: 648.725, v1: 0, v2: 0 },
-      { id: '115', ma: 'CL6-9', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '116', ma: 'CL6-10', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '117', ma: 'CL6-11', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '118', ma: 'CL6-12', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '119', ma: 'CL6-13', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '120', ma: 'CL6-14', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '121', ma: 'CL6-15', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '122', ma: 'CL6-16', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '123', ma: 'CL6-17', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '124', ma: 'CL6-18', dt: 100.0, kd: 735.0, v1: 0, v2: 0 },
-      { id: '125', ma: 'CL6-19', dt: 100.0, kd: 735.0, v1: 0, v2: 0 },
-      { id: '126', ma: 'CL6-20', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '127', ma: 'CL6-21', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '128', ma: 'CL6-22', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '129', ma: 'CL6-23', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '130', ma: 'CL6-24', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '131', ma: 'CL6-25', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '132', ma: 'CL6-26', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '133', ma: 'CL6-27', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      { id: '134', ma: 'CL6-28', dt: 100.0, kd: 700.0, v1: 0, v2: 0 },
-      // Lô CL-7
-      { id: '135', ma: 'CL7-1', dt: 128.6, kd: 990.22, v1: 0, v2: 0 },
-      { id: '136', ma: 'CL7-2', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '137', ma: 'CL7-3', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '138', ma: 'CL7-4', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '139', ma: 'CL7-5', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '140', ma: 'CL7-6', dt: 119.75, kd: 922.075, v1: 0, v2: 0 },
-      { id: '141', ma: 'CL7-7', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '142', ma: 'CL7-8', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '143', ma: 'CL7-9', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '144', ma: 'CL7-10', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '145', ma: 'CL7-11', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '146', ma: 'CL7-12', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '147', ma: 'CL7-13', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '148', ma: 'CL7-14', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '149', ma: 'CL7-15', dt: 87.5, kd: 612.5, v1: 0, v2: 0 },
-      { id: '150', ma: 'CL7-16', dt: 87.5, kd: 643.125, v1: 0, v2: 0 },
-      { id: '151', ma: 'CL7-17', dt: 85.0, kd: 624.75, v1: 0, v2: 0 },
-      { id: '152', ma: 'CL7-18', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '153', ma: 'CL7-19', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '154', ma: 'CL7-20', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '155', ma: 'CL7-21', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '156', ma: 'CL7-22', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '157', ma: 'CL7-23', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '158', ma: 'CL7-24', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '159', ma: 'CL7-25', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      { id: '160', ma: 'CL7-26', dt: 85.0, kd: 595.0, v1: 0, v2: 0 },
-      // Lô CL-8
-      { id: '161', ma: 'CL8-1', dt: 137.5, kd: 1058.75, v1: 0, v2: 0 },
-      { id: '162', ma: 'CL8-2', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '163', ma: 'CL8-3', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '164', ma: 'CL8-4', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '165', ma: 'CL8-5', dt: 88.75, kd: 621.25, v1: 0, v2: 0 },
-      { id: '166', ma: 'CL8-6', dt: 128.6, kd: 990.22, v1: 0, v2: 0 },
-      { id: '167', ma: 'CL8-7', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '168', ma: 'CL8-8', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '169', ma: 'CL8-9', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '170', ma: 'CL8-10', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '171', ma: 'CL8-11', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '172', ma: 'CL8-12', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '173', ma: 'CL8-13', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '174', ma: 'CL8-14', dt: 90.0, kd: 630.0, v1: 0, v2: 0 },
-      { id: '175', ma: 'CL8-15', dt: 90.0, kd: 630.0, v1: 0, v2: 0 }
-    ];
+  <section class="tab" id="tab-loans">
+    <h1>Khoản vay</h1>
+    <div class="hero" id="heroLoan">
+      <div class="lbl">Dư nợ còn phải trả</div>
+      <div class="big" id="lDebt">0 ₫</div>
+      <div class="pbar"><i id="lBar"></i></div>
+      <div class="pct" id="lPct"></div>
+      <div class="stats">
+        <div><small>Tổng đã vay</small><b id="lTotal">0 ₫</b></div>
+        <div><small>Đã trả</small><b id="lPaid">0 ₫</b></div>
+      </div>
+    </div>
+    <div class="zone loan">
+      <div class="sec"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></svg></span>
+        <div class="tt"><b>Danh sách khoản vay</b><small id="lnCount"></small></div>
+        <button class="add" data-add="loan">+ Thêm</button></div>
+      <div id="lnList"></div>
+    </div>
+  </section>
 
-    let lots = JSON.parse(localStorage.getItem('min_auction_lots_trieu_v3') || 'null');
-    if (!lots) {
-      lots = defaultLots;
-      save();
-    }
+  <section class="tab" id="tab-settings">
+    <h1>Cài đặt</h1>
+    <div class="card">
+      <h3><span class="ic" style="background:linear-gradient(135deg,var(--violet),var(--pink))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>Giao diện</h3>
+      <div class="seg" id="themeSeg"><button data-theme="dark">Tối</button><button data-theme="light">Sáng</button></div>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:linear-gradient(135deg,var(--violet),var(--pink))"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.2-1.6-.4-1 .2-2.4 1.6-2.4H17a4 4 0 0 0 4-4c0-5-4-10-9-10z"/></svg></span>Màu chủ đề</h3>
+      <div class="swatches" id="accentSeg"></div>
+    </div>
+    <div class="card">
+      <h3><span class="ic" style="background:var(--g-land)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span>Sao lưu dữ liệu</h3>
+      <button class="btn" style="background:var(--g-land)" id="exportBtn">Xuất file sao lưu</button>
+      <button class="btn ghost" id="importBtn">Phục hồi từ file sao lưu</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+      <div class="hint" style="margin-top:14px">Dữ liệu lưu trên trình duyệt của thiết bị này. Hãy xuất file định kỳ; phục hồi sẽ ghi đè toàn bộ dữ liệu hiện tại.</div>
+    </div>
+  </section>
+</div>
 
-    // Quản lý trạng thái sắp xếp
-    let sortColumn = null; // 'dt' | 'kd'
-    let sortOrder = 'default'; // 'default' | 'asc' | 'desc'
+<nav id="nav">
+  <button data-tab="land" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span>Lô đất</span></button>
+  <button data-tab="loans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></svg><span>Khoản vay</span></button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Cài đặt</span></button>
+</nav>
 
-    function save() {
-      localStorage.setItem('min_auction_lots_trieu_v3', JSON.stringify(lots));
-      document.getElementById('cnt').textContent = `${lots.length} lô`;
-    }
+<div class="overlay" id="overlay"><div class="sheet">
+  <div class="grab"></div><h2 id="sheetTitle"></h2><div id="formFields"></div>
+  <div class="err" id="formErr"></div>
+  <button class="btn" id="formSave"></button><button class="btn ghost" id="formCancel">Hủy</button>
+</div></div>
 
-    function switchTab(id) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      if(id==='t1') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('t1').classList.add('active');
-        renderT1();
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('t2').classList.add('active');
-        renderT2();
-      }
-    }
+<div class="confirm" id="confirm"><div class="box"><h4 id="cTitle"></h4><p id="cMsg"></p>
+  <div class="acts"><button id="cNo">Hủy</button><button class="ok" id="cYes">Xóa</button></div></div></div>
+<div id="toast"></div>
 
-    function addLot(e) {
-      e.preventDefault();
-      const m = document.getElementById('m').value.trim().toUpperCase();
-      const d = parseFloat(document.getElementById('d').value);
-      const g = parseFloat(document.getElementById('g').value);
-      if(!m || !d || isNaN(g)) return;
+<script>
+(function(){
+'use strict';
+var KEY='lodat_v1';
+var S={landName:'',landPrice:0,spends:[],loans:[]};
+function $(s){return document.querySelector(s);}
+function digits(s){return String(s).replace(/\D/g,'');}
+function group(s){s=digits(s).replace(/^0+(?=\d)/,'');return s.replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+function fmt(n){return group(String(Math.round(Math.abs(n))))+' ₫';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function disp(iso){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?m[3]+'/'+m[2]+'/'+m[1]:'';}
+function num(v){v=Number(v);return isFinite(v)&&v>0?Math.round(v):0;}
+function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
 
-      lots.unshift({
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
-        ma: m, dt: d,
-        kd: g,
-        v1: 0, v2: 0
-      });
-      save();
-      renderT1();
-      document.getElementById('m').value = '';
-      document.getElementById('d').value = '';
-      document.getElementById('g').value = '';
-      document.getElementById('m').focus();
-    }
+/* dữ liệu */
+function load(){try{var d=JSON.parse(localStorage.getItem(KEY)||'null');if(d)apply(d);}catch(e){}}
+function apply(d){S.landName=String(d.landName||'');S.landPrice=num(d.landPrice);
+  S.spends=Array.isArray(d.spends)?d.spends.filter(Boolean):[];S.loans=Array.isArray(d.loans)?d.loans.filter(Boolean):[];}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Không lưu được dữ liệu');}}
+function sum(a,k){return a.reduce(function(t,x){return t+num(x[k]);},0);}
 
-    function onSelectLotToEdit() {
-      const id = document.getElementById('edit-select').value;
-      const l = lots.find(item => item.id === id);
-      if(l) {
-        document.getElementById('edit-d').value = l.dt;
-        document.getElementById('edit-g').value = l.kd;
-      } else {
-        document.getElementById('edit-d').value = '';
-        document.getElementById('edit-g').value = '';
-      }
-    }
+/* hiển thị */
+function renderHero(){
+  var land=S.landPrice,spent=sum(S.spends,'amount'),rem=land-spent,over=rem<0;
+  $('#hLbl').textContent=over?'Chi vượt số tiền lô đất':'Số tiền còn lại';
+  $('#hBig').textContent=(over?'-':'')+fmt(rem);
+  $('#hero').classList.toggle('over',over);
+  $('#hLand').textContent=fmt(land);$('#hSpent').textContent=fmt(spent);
+  var p=land>0?Math.min(100,spent/land*100):0;
+  $('#hBar').style.width=p+'%';
+  $('#hPct').textContent=land>0?'Đã chi '+(Math.round(spent/land*1000)/10).toString().replace('.',',')+'% giá trị lô đất':'Nhập số tiền lô đất để xem tiến độ';
+  $('#hLoans').textContent=fmt(sum(S.loans,'amount'));
+}
+function renderSpends(){
+  var idx=S.spends.map(function(x,i){return i;}).sort(function(a,b){return (S.spends[b].date||'').localeCompare(S.spends[a].date||'')||b-a;});
+  $('#spCount').textContent=S.spends.length?S.spends.length+' khoản':'Chưa có khoản nào';
+  $('#spList').innerHTML=idx.length?idx.map(function(i){var x=S.spends[i];
+    return '<div class="item"><div class="r1"><div class="t">'+esc(x.name)+'</div><div class="v">'+fmt(x.amount)+'</div></div>'+
+      '<div class="r2"><div class="d">'+disp(x.date)+'</div><div class="btns"><button class="pill e" data-edit="spend" data-i="'+i+'">Sửa</button><button class="pill d" data-del="spend" data-i="'+i+'">Xóa</button></div></div>'+
+      (x.note?'<div class="n">'+esc(x.note)+'</div>':'')+'</div>';}).join(''):
+    '<div class="empty">Chưa có khoản chi nào.<br>Bấm “+ Thêm” để ghi khoản đã chi đầu tiên.</div>';
+  $('#spTotal').innerHTML=S.spends.length?'<span>Tổng đã chi</span><b>'+fmt(sum(S.spends,'amount'))+'</b>':'';
+}
+function renderLoans(){
+  var tot=sum(S.loans,'amount'),paid=sum(S.loans,'paid'),debt=Math.max(0,tot-paid);
+  $('#lDebt').textContent=fmt(debt);$('#lTotal').textContent=fmt(tot);$('#lPaid').textContent=fmt(paid);
+  $('#lBar').style.width=(tot>0?Math.min(100,paid/tot*100):0)+'%';
+  $('#lPct').textContent=tot>0?'Đã trả '+(Math.round(paid/tot*1000)/10).toString().replace('.',',')+'% tổng số tiền vay':'Chưa có khoản vay nào';
+  $('#lnCount').textContent=S.loans.length?S.loans.length+' khoản':'Chưa có khoản nào';
+  $('#lnList').innerHTML=S.loans.length?S.loans.map(function(x,i){var left=Math.max(0,num(x.amount)-num(x.paid));
+    var meta=[disp(x.date)];if(x.rate)meta.push('Lãi '+String(x.rate).replace('.',',')+'%/năm');
+    return '<div class="item"><div class="r1"><div class="t">'+esc(x.name)+'</div><div class="v">'+fmt(x.amount)+'</div></div>'+
+      '<div class="r2"><div class="d">'+meta.filter(Boolean).join(' • ')+'</div><div class="btns"><button class="pill e" data-edit="loan" data-i="'+i+'">Sửa</button><button class="pill d" data-del="loan" data-i="'+i+'">Xóa</button></div></div>'+
+      (num(x.paid)?'<div class="debt"><span>Đã trả '+fmt(x.paid)+'</span><span>Còn nợ <b class="'+(left?'':'ok')+'">'+fmt(left)+'</b></span></div>':'')+
+      (x.note?'<div class="n">'+esc(x.note)+'</div>':'')+'</div>';}).join(''):
+    '<div class="empty">Chưa có khoản vay nào.<br>Bấm “+ Thêm” để ghi khoản vay đầu tiên.</div>';
+}
+function renderAll(){renderHero();renderSpends();renderLoans();}
 
-    function editLot(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-select').value;
-      if(!id) {
-        alert('Vui lòng chọn Mã lô cần sửa từ danh sách!');
-        return;
-      }
-      const l = lots.find(item => item.id === id);
-      if(l) {
-        l.dt = parseFloat(document.getElementById('edit-d').value) || l.dt;
-        l.kd = parseFloat(document.getElementById('edit-g').value) || l.kd;
-        save();
-        renderT1();
-        alert(`Đã cập nhật xong lô ${l.ma}!`);
-      }
-    }
+/* tab */
+function showTab(n){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.id==='tab-'+n);});
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===n);});
+  window.scrollTo(0,0);}
+$('#nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)showTab(b.dataset.tab);});
+$('#goLoans').addEventListener('click',function(){showTab('loans');});
 
-    function updateVal(id, field, val) {
-      const l = lots.find(item => item.id === id);
-      if(l) {
-        l[field] = parseFloat(val) || 0;
-        save();
-        renderT2();
-      }
-    }
+/* ô nhập có định dạng */
+function fmtInput(el,fn){el.addEventListener('input',function(){var v=fn(el.value);if(v!==el.value)el.value=v;});}
+function rateFn(x){var v=x.replace(/[^\d.,]/g,'').replace('.',',');var i=v.indexOf(',');
+  if(i>=0)v=v.slice(0,i+1)+v.slice(i+1).replace(/,/g,'');return v.slice(0,6);}
+var ln=$('#landName'),lp=$('#landPrice');
+fmtInput(lp,group);
+ln.addEventListener('input',function(){S.landName=ln.value;save();});
+lp.addEventListener('input',function(){S.landPrice=parseInt(digits(lp.value)||'0',10)||0;save();renderHero();});
 
-    function fGia(v) {
-      if(!v) return '-';
-      return v.toLocaleString('vi-VN');
-    }
+/* form thêm / sửa */
+var FORMS={
+  spend:{list:'spends',grad:'var(--g-land)',title:'khoản chi',fields:[
+    {k:'name',label:'Nội dung chi',kind:'text',ph:'VD: Đặt cọc, Phí công chứng'},
+    {k:'amount',label:'Số tiền đã chi',kind:'money',suf:'VND',ph:'0'},
+    {k:'date',label:'Ngày chi',kind:'date'},
+    {k:'note',label:'Ghi chú',kind:'textarea'}]},
+  loan:{list:'loans',grad:'var(--g-loan)',title:'khoản vay',fields:[
+    {k:'name',label:'Bên cho vay',kind:'text',ph:'VD: Ngân hàng A, anh B'},
+    {k:'amount',label:'Số tiền vay',kind:'money',suf:'VND',ph:'0'},
+    {k:'rate',label:'Lãi suất (không bắt buộc)',kind:'rate',suf:'%/năm',ph:'VD: 8,5'},
+    {k:'date',label:'Ngày vay',kind:'date'},
+    {k:'paid',label:'Đã trả (không bắt buộc)',kind:'money0',suf:'VND',ph:'0'},
+    {k:'note',label:'Ghi chú',kind:'textarea'}]}
+};
+var editing=null;
+function openForm(type,idx){
+  var cfg=FORMS[type],isEdit=idx!=null;editing={type:type,idx:isEdit?+idx:null};
+  var item=isEdit?S[cfg.list][idx]:null;
+  $('#sheetTitle').innerHTML='<span class="ic" style="background:'+cfg.grad+'"></span>'+(isEdit?'Sửa ':'Thêm ')+cfg.title;
+  $('#formErr').textContent='';$('#formSave').style.background=cfg.grad;$('#formSave').textContent=isEdit?'Lưu thay đổi':'Thêm mới';
+  $('#formFields').innerHTML=cfg.fields.map(function(f){
+    var v=item?item[f.k]:(f.kind==='date'?todayISO():'');if(v==null)v='';
+    if(item&&(f.kind==='money'||f.kind==='money0'))v=num(v)?group(String(v)):'';
+    if(item&&f.kind==='rate')v=v?String(v).replace('.',','):'';
+    var inp,suf=f.suf?'<span class="suf">'+f.suf+'</span>':'';
+    if(f.kind==='textarea')inp='<textarea id="f_'+f.k+'" rows="3">'+esc(v)+'</textarea>';
+    else if(f.kind==='date')inp='<input id="f_'+f.k+'" type="date" value="'+esc(v)+'">';
+    else{var mode=f.kind==='text'?'text':(f.kind==='rate'?'decimal':'numeric');
+      inp='<div class="inp"><input id="f_'+f.k+'" class="'+(f.suf?'has-suf':'')+'" type="text" inputmode="'+mode+'" autocomplete="off" placeholder="'+esc(f.ph||'')+'" value="'+esc(v)+'">'+suf+'</div>';}
+    return '<div class="field"><label for="f_'+f.k+'">'+f.label+'</label>'+inp+'</div>';}).join('');
+  cfg.fields.forEach(function(f){var el=$('#f_'+f.k);
+    if(f.kind==='money'||f.kind==='money0')fmtInput(el,group);
+    if(f.kind==='rate')fmtInput(el,rateFn);});
+  $('#overlay').classList.add('show');
+}
+function closeForm(){$('#overlay').classList.remove('show');editing=null;}
+function submitForm(){
+  if(!editing)return;var cfg=FORMS[editing.type],rec={},err='';
+  cfg.fields.forEach(function(f){if(err)return;var v=$('#f_'+f.k).value.trim();
+    if(f.kind==='text'){if(!v)err='Vui lòng nhập '+f.label.toLowerCase();rec[f.k]=v;}
+    else if(f.kind==='textarea')rec[f.k]=v;
+    else if(f.kind==='money'){var n=parseInt(digits(v)||'0',10);if(!(n>0))err='Vui lòng nhập số tiền hợp lệ';rec[f.k]=n;}
+    else if(f.kind==='money0')rec[f.k]=parseInt(digits(v)||'0',10)||0;
+    else if(f.kind==='rate'){var r=parseFloat(v.replace(',','.'));rec[f.k]=isFinite(r)&&r>0?r:0;}
+    else if(f.kind==='date'){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))err='Vui lòng chọn ngày';rec[f.k]=v;}});
+  if(!err&&editing.type==='loan'&&rec.paid>rec.amount)err='Số tiền đã trả không được lớn hơn số tiền vay';
+  if(err){$('#formErr').textContent=err;return;}
+  var arr=S[cfg.list];if(editing.idx!=null)arr[editing.idx]=rec;else arr.push(rec);
+  save();renderAll();closeForm();toast('Đã lưu');
+}
+$('#formSave').addEventListener('click',submitForm);
+$('#formCancel').addEventListener('click',closeForm);
+$('#overlay').addEventListener('click',function(e){if(e.target===this)closeForm();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeForm();$('#confirm').classList.remove('show');}});
 
-    function fM2(v, dt) {
-      if(!v || !dt) return '-';
-      return (v / dt).toFixed(2);
-    }
+/* xác nhận xóa */
+var onYes=null;
+function ask(title,msg,yes,cb){$('#cTitle').textContent=title;$('#cMsg').textContent=msg;$('#cYes').textContent=yes;onYes=cb;$('#confirm').classList.add('show');}
+$('#cNo').addEventListener('click',function(){$('#confirm').classList.remove('show');onYes=null;});
+$('#cYes').addEventListener('click',function(){$('#confirm').classList.remove('show');var f=onYes;onYes=null;if(f)f();});
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.add)openForm(b.dataset.add);
+  else if(b.dataset.edit)openForm(b.dataset.edit,b.dataset.i);
+  else if(b.dataset.del){var cfg=FORMS[b.dataset.del],i=+b.dataset.i;
+    ask('Xóa mục này?','Dữ liệu sẽ bị xóa khỏi ứng dụng.','Xóa',function(){S[cfg.list].splice(i,1);save();renderAll();});}});
 
-    function toggleSort(col) {
-      const thDt = document.getElementById('th-dt');
-      const thKd = document.getElementById('th-kd');
+/* giao diện */
+var ACCENTS=[['violet','Tím hồng','#7C3AED,#EC4899'],['ocean','Biển xanh','#2563EB,#0EA5E9'],['forest','Rừng xanh','#047857,#16A34A'],['sunset','Hoàng hôn','#E11D48,#F97316']];
+function curTheme(){return document.documentElement.getAttribute('data-theme');}
+function curAccent(){return document.documentElement.getAttribute('data-accent');}
+function paintSettings(){
+  document.querySelectorAll('#themeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.theme===curTheme());});
+  $('#accentSeg').innerHTML=ACCENTS.map(function(a){return '<button class="sw'+(a[0]===curAccent()?' on':'')+'" data-accent="'+a[0]+'"><i style="background:linear-gradient(135deg,'+a[2]+')"></i>'+a[1]+'</button>';}).join('');
+}
+$('#themeSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  document.documentElement.setAttribute('data-theme',b.dataset.theme);try{localStorage.setItem('ld_theme',b.dataset.theme);}catch(x){}
+  $('#themeMeta').setAttribute('content',b.dataset.theme==='light'?'#F3F3F9':'#0B0B14');paintSettings();});
+$('#accentSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  document.documentElement.setAttribute('data-accent',b.dataset.accent);try{localStorage.setItem('ld_accent',b.dataset.accent);}catch(x){}paintSettings();});
 
-      if (sortColumn !== col) {
-        sortColumn = col;
-        sortOrder = 'asc';
-      } else {
-        if (sortOrder === 'asc') sortOrder = 'desc';
-        else if (sortOrder === 'desc') {
-          sortOrder = 'default';
-          sortColumn = null;
-        }
-      }
+/* sao lưu / phục hồi */
+function download(text,name){var url=URL.createObjectURL(new Blob([text],{type:'application/json;charset=utf-8'}));
+  var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},4000);toast('Đã xuất file sao lưu');}
+$('#exportBtn').addEventListener('click',function(){
+  var d=new Date(),name='LoDat_backup_'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+'.json';
+  var text=JSON.stringify(S,null,2),file;
+  try{file=new File([text],name,{type:'application/json'});}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:'Sao lưu lô đất'}).then(function(){toast('Đã xuất file sao lưu');}).catch(function(err){if(err&&err.name!=='AbortError')download(text,name);});
+  }else download(text,name);});
+$('#importBtn').addEventListener('click',function(){$('#importFile').click();});
+$('#importFile').addEventListener('change',function(){
+  var f=this.files&&this.files[0],input=this;if(!f)return;var rd=new FileReader();
+  rd.onload=function(){var d;
+    try{d=JSON.parse(rd.result);if(!d||!Array.isArray(d.spends)||!Array.isArray(d.loans))throw 0;}
+    catch(e){toast('File không hợp lệ');input.value='';return;}
+    ask('Phục hồi dữ liệu?','Dữ liệu hiện tại sẽ bị ghi đè bởi file "'+f.name+'".\n\nKhoản chi: '+d.spends.length+'\nKhoản vay: '+d.loans.length,'Phục hồi',function(){
+      apply(d);save();ln.value=S.landName;lp.value=S.landPrice?group(String(S.landPrice)):'';renderAll();toast('Phục hồi thành công');});
+    input.value='';};
+  rd.onerror=function(){toast('Không đọc được file');};rd.readAsText(f,'utf-8');});
 
-      // Cập nhật biểu tượng tiêu đề
-      thDt.textContent = sortColumn === 'dt' ? (sortOrder === 'asc' ? 'S ▲' : (sortOrder === 'desc' ? 'S ▼' : 'S ↕')) : 'S ↕';
-      thKd.textContent = sortColumn === 'kd' ? (sortOrder === 'asc' ? 'KĐ ▲' : (sortOrder === 'desc' ? 'KĐ ▼' : 'KĐ ↕')) : 'KĐ ↕';
-
-      renderT2();
-    }
-
-    function renderT1() {
-      const tb = document.getElementById('tb1');
-      const sel = document.getElementById('edit-select');
-
-      if(lots.length === 0) {
-        tb.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:10px;color:#777">Chưa có lô đất</td></tr>`;
-        sel.innerHTML = `<option value="">-- Chưa có lô --</option>`;
-        document.getElementById('edit-d').value = '';
-        document.getElementById('edit-g').value = '';
-        return;
-      }
-
-      tb.innerHTML = lots.map(l => `
-        <tr>
-          <td class="t1-ma">${l.ma}</td>
-          <td style="text-align:right">${l.dt}</td>
-          <td style="text-align:right">${fGia(l.kd)}</td>
-        </tr>
-      `).join('');
-
-      const curSel = sel.value;
-      sel.innerHTML = `<option value="">-- Chọn mã --</option>` + 
-        lots.map(l => `<option value="${l.id}">${l.ma}</option>`).join('');
-      sel.value = curSel;
-
-      document.getElementById('cnt').textContent = `${lots.length} lô`;
-    }
-
-    function renderT2() {
-      const tb = document.getElementById('tb2');
-      if(lots.length === 0) {
-        tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:10px;color:#777">Chưa có dữ liệu</td></tr>`;
-        return;
-      }
-
-      let displayLots = [...lots];
-      if (sortColumn && sortOrder !== 'default') {
-        displayLots.sort((a, b) => {
-          const valA = a[sortColumn];
-          const valB = b[sortColumn];
-          return sortOrder === 'asc' ? valA - valB : valB - valA;
-        });
-      }
-
-      tb.innerHTML = displayLots.map(l => {
-        const v1m2 = fM2(l.v1, l.dt);
-        const v2m2 = fM2(l.v2, l.dt);
-        let v3 = '-';
-        
-        if(l.v1 && l.v2 && l.dt) {
-          const m1 = l.v1 / l.dt;
-          const m2 = l.v2 / l.dt;
-          v3 = (m2 + Math.max(m2 - m1, 0)).toFixed(2);
-        } else if(l.v1 && l.dt) {
-          v3 = (l.v1 / l.dt * 1.05).toFixed(2);
-        }
-
-        return `
-          <tr>
-            <td class="t2-ma">${l.ma}</td>
-            <td style="text-align:right">${l.dt}</td>
-            <td style="text-align:right">${fGia(l.kd)}</td>
-            <td style="text-align:right">
-              <input type="number" step="any" class="cell-input" value="${l.v1 ? l.v1 : ''}" placeholder="Triệu" onchange="updateVal('${l.id}','v1',this.value)">
-            </td>
-            <td class="t2-v1m2">${v1m2}</td>
-            <td style="text-align:right">
-              <input type="number" step="any" class="cell-input" value="${l.v2 ? l.v2 : ''}" placeholder="Triệu" onchange="updateVal('${l.id}','v2',this.value)">
-            </td>
-            <td class="t2-v2m2">${v2m2}</td>
-            <td class="t2-v3m2">${v3}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function resetDefaultData() {
-      if(confirm('Khôi phục lại toàn bộ dữ liệu gốc từ ảnh?')) {
-        lots = JSON.parse(JSON.stringify(defaultLots));
-        sortColumn = null;
-        sortOrder = 'default';
-        document.getElementById('th-dt').textContent = 'S ↕';
-        document.getElementById('th-kd').textContent = 'KĐ ↕';
-        save();
-        renderT1();
-        renderT2();
-      }
-    }
-
-    function exportCSV() {
-      let csv = '\uFEFFMã,Diện tích,Giá KĐ (Triệu),Vòng 1 (Triệu),V1/m2 (Triệu/m2),Vòng 2 (Triệu),V2/m2 (Triệu/m2)\n';
-      lots.forEach(l => {
-        csv += `${l.ma},${l.dt},${l.kd},${l.v1},${fM2(l.v1,l.dt)},${l.v2},${fM2(l.v2,l.dt)}\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'daugia_trieu.csv';
-      a.click();
-    }
-
-    renderT1();
-  </script>
+/* khởi động */
+load();ln.value=S.landName;lp.value=S.landPrice?group(String(S.landPrice)):'';
+paintSettings();renderAll();
+})();
+</script>
 </body>
 </html>
